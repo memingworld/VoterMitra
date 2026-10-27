@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { AssistantAnswer } from '@/lib/assistant';
 import { type LanguageCode } from '@/lib/languages';
 import { useLanguage } from '@/components/language-context';
+import { ElectorCardView } from '@/components/elector-card-view';
 
 type Result = {
   answer: AssistantAnswer;
@@ -16,172 +17,234 @@ interface ClaimCheckerProps {
   onLanguageChange?: (lang: LanguageCode) => void;
 }
 
-export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimCheckerProps) {
-  const { lang: contextLang, setLang: contextSetLang, t } = useLanguage();
+// Categorized interactive inquiries across the official 15,308 elector dataset
+const INQUIRY_CATEGORIES = [
+  {
+    id: 'elector',
+    icon: '👤',
+    labelEn: 'Elector & EPIC Search',
+    labelHi: 'मतदाता व पहचान पत्र खोज',
+    hintEn: 'Search any citizen or Voter ID across 15,308 verified Delhi records',
+    hintHi: 'दिल्ली के 15,308 मतदाताओं में से किसी भी नागरिक या पहचान पत्र की खोज करें',
+    queries: [
+      { q: 'Is Yuv Jindal present in the list?', label: 'Yuv Jindal (AC 58 Kundan Nagar)' },
+      { q: 'रोहिणी में अमित कुमार', label: 'Amit Kumar (AC 13 Rohini)' },
+      { q: 'IPS3346004', label: 'EPIC: IPS3346004' },
+      { q: 'Sarthak Prasad', label: 'Sarthak Prasad (AC 58)' },
+    ],
+  },
+  {
+    id: 'anomalies',
+    icon: '⚠️',
+    labelEn: 'Revision Deletion Audits',
+    labelHi: 'पुनरीक्षण विलोपन जांच',
+    hintEn: 'Audit targeted deletions and statistical shifts under Rule 21A',
+    hintHi: 'नियम 21A के तहत संदिग्ध विलोपन व सांख्यिकीय विचलनों की जांच',
+    queries: [
+      { q: 'Check status for Pooja Verma', label: 'Pooja Verma (Part 4 Deletion Anomaly)' },
+      { q: 'Were 49 women electors deleted in Part 4?', label: 'Part 4 (+4.9σ Female Deletion Anomaly)' },
+      { q: 'Check cross-AC duplicate entries', label: 'Cross-AC Duplicate EPIC Check (AC 6 & 13)' },
+    ],
+  },
+  {
+    id: 'clusters',
+    icon: '🏠',
+    labelEn: 'Address Clusters & Boothing',
+    labelHi: 'पता संकेंद्रण व मतदान केंद्र',
+    hintEn: 'Detect abnormal voter density at single addresses or student hostels',
+    hintHi: 'एकल पते पर अत्यधिक पंजीकरण या हॉस्टल संकेंद्रण की जांच',
+    queries: [
+      { q: 'How many electors are registered at Plot 12-B?', label: 'Plot 12-B Basement (43 Electors Cluster)' },
+      { q: 'Check Part 1 Kundan Nagar polling station', label: 'Part 1 Kundan Nagar (Lovely Public School)' },
+    ],
+  },
+  {
+    id: 'rules',
+    icon: '📜',
+    labelEn: 'Statutory ECI Rules',
+    labelHi: 'विधिक नियम व अधिकार',
+    hintEn: 'Authoritative guidance on Form 6, 7, 8, and voting without EPIC',
+    hintHi: 'फॉर्म 6, 7, 8 तथा बिना पहचान पत्र मतदान के विधिक नियम',
+    queries: [
+      { q: 'How to register a new voter using Form 6?', label: 'Form 6: New Voter Registration (Age 18+)' },
+      { q: 'Can I vote if I do not have a physical EPIC card?', label: 'Voting Without Physical EPIC (12 Approved IDs)' },
+      { q: 'What is mandatory notice under Rule 21A before deletion?', label: 'Rule 21A Notice & Hearing Safeguard' },
+    ],
+  },
+];
+
+export function ClaimChecker({ currentLang: propLang }: ClaimCheckerProps) {
+  const { lang: contextLang, t } = useLanguage();
   const lang = propLang || contextLang;
 
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [activeCategory, setActiveCategory] = useState('elector');
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const recognitionRef = useRef<any>(null);
-  const isRecordingRef = useRef(false);
-  const latestTranscriptRef = useRef('');
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const maxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Initialize Speech Recognition for browser microphone
+  // Clean up recording stream on unmount
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // Clean up previous instance if any
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.abort();
-      } catch {
-        // Ignore
-      }
-      recognitionRef.current = null;
-    }
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = lang;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-        setError(null);
-      };
-
-      recognition.onresult = (event: any) => {
-        let fullTranscript = '';
-        for (let i = 0; i < event.results.length; ++i) {
-          fullTranscript += event.results[i][0].transcript + ' ';
-        }
-        const cleaned = fullTranscript.trim();
-        if (cleaned) {
-          latestTranscriptRef.current = cleaned;
-          setQuestion(cleaned);
-        }
-      };
-
-      recognition.onerror = (event: any) => {
-        if (event.error === 'no-speech') {
-          // Normal pause in speaking; keep listening without showing error
-          return;
-        }
-        console.warn('[speech recognition] error:', event.error);
-        if (event.error === 'not-allowed') {
-          isRecordingRef.current = false;
-          setIsListening(false);
-          setError('माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र सेटिंग्स में माइक्रोफोन अनुमति चालू करें।');
-        }
-      };
-
-      recognition.onend = () => {
-        // If the user hasn't clicked stop yet, safely auto-restart after a brief delay
-        if (isRecordingRef.current) {
-          setTimeout(() => {
-            if (isRecordingRef.current && recognitionRef.current) {
-              try {
-                recognitionRef.current.start();
-              } catch {
-                // Ignore if already starting or active
-              }
-            }
-          }, 250);
-        } else {
-          setIsListening(false);
-        }
-      };
-
-      recognitionRef.current = recognition;
-    }
-
     return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.abort();
-        } catch {
-          // Ignore
-        }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (maxTimeoutRef.current) clearTimeout(maxTimeoutRef.current);
     };
-  }, [lang]);
+  }, []);
 
-  const startVoiceInput = () => {
-    if (!recognitionRef.current) {
-      setError('इस ब्राउज़र में लाइव वॉयस रिकॉग्निशन समर्थित नहीं है। कृपया लिखकर प्रश्न पूछें या नीचे दिए गए त्वरित बटनों का उपयोग करें।');
+  // Native HTML5 MediaRecorder (Cross-browser, universal microphone recording)
+  const startVoiceRecording = async () => {
+    setError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('आपके ब्राउज़र में ऑडियो रिकॉर्डिंग समर्थित नहीं है। कृपया लिखकर प्रश्न पूछें।');
       return;
     }
 
-    isRecordingRef.current = true;
-    latestTranscriptRef.current = '';
-    setQuestion('');
-    setError(null);
-    setIsListening(true);
-    setRecordingSeconds(0);
-
     try {
-      recognitionRef.current.lang = lang;
-      recognitionRef.current.start();
-    } catch {
-      // In case already active
-    }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
 
-    // Recording seconds counter
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setRecordingSeconds((prev) => prev + 1);
-    }, 1000);
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/ogg')
+        ? 'audio/ogg'
+        : '';
 
-    // Auto-stop safety timeout after 25 seconds
-    if (maxTimeoutRef.current) clearTimeout(maxTimeoutRef.current);
-    maxTimeoutRef.current = setTimeout(() => {
-      if (isRecordingRef.current) {
-        stopVoiceInput();
+      const options = mimeType ? { mimeType } : undefined;
+      const mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: mediaRecorder.mimeType || 'audio/webm',
+        });
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+        }
+        await handleVoiceSubmit(audioBlob);
+      };
+
+      mediaRecorder.start(250); // Slice into 250ms chunks
+      setIsListening(true);
+      setRecordingSeconds(0);
+
+      // Start timer
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setRecordingSeconds((prev) => prev + 1);
+      }, 1000);
+
+      // Safety timeout after 25s
+      if (maxTimeoutRef.current) clearTimeout(maxTimeoutRef.current);
+      maxTimeoutRef.current = setTimeout(() => {
+        stopVoiceRecording();
+      }, 25000);
+    } catch (micErr: any) {
+      console.warn('[mic] getUserMedia failed:', micErr);
+      setIsListening(false);
+      if (micErr.name === 'NotAllowedError' || micErr.name === 'PermissionDeniedError') {
+        setError('माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र सेटिंग्स में माइक्रोफोन अनुमति चालू करें।');
+      } else {
+        setError('माइक्रोफोन एक्सेस करने में त्रुटि। कृपया लिखकर प्रश्न पूछें।');
       }
-    }, 25000);
+    }
   };
 
-  const stopVoiceInput = () => {
-    isRecordingRef.current = false;
+  const stopVoiceRecording = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (maxTimeoutRef.current) clearTimeout(maxTimeoutRef.current);
 
-    if (recognitionRef.current) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       try {
-        recognitionRef.current.stop();
-      } catch {
-        // Ignore
+        mediaRecorderRef.current.stop();
+      } catch (err) {
+        console.warn('Error stopping media recorder:', err);
       }
     }
     setIsListening(false);
-
-    // If text was spoken, automatically trigger verification
-    const textToVerify = (latestTranscriptRef.current || question).trim();
-    if (textToVerify.length >= 2) {
-      handleVerify(textToVerify);
-    }
   };
 
-  const toggleVoiceInput = () => {
+  const toggleVoice = () => {
     if (isListening) {
-      stopVoiceInput();
+      stopVoiceRecording();
     } else {
-      startVoiceInput();
+      startVoiceRecording();
     }
   };
 
+  // Submit audio file directly to /api/check/voice (Gemini Multimodal Audio + Gnani TTS)
+  async function handleVoiceSubmit(audioBlob: Blob) {
+    setBusy(true);
+    setError(null);
+    setResult(null);
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'recording.webm');
+      formData.append('lang', lang);
+
+      const res = await fetch('/api/check/voice', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error ?? 'वॉयस सत्यापन विफल रहा');
+      if (!data?.answer) throw new Error('अमान्य उत्तर प्रारूप');
+
+      if (data.transcript) {
+        setQuestion(data.transcript);
+      }
+
+      let audioUrl: string | null = null;
+      if (data.audio) {
+        try {
+          const binary = atob(data.audio);
+          const array = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+          const blob = new Blob([array], { type: 'audio/wav' });
+          audioUrl = URL.createObjectURL(blob);
+        } catch (audioErr) {
+          console.warn('[voice] Failed to create audio URL:', audioErr);
+        }
+      }
+
+      setResult({ answer: data.answer, question: data.transcript || question, audioUrl });
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'सर्वर से संपर्क करने में त्रुटि। कृपया पुनः प्रयास करें।');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Text Verification Submit
   async function handleVerify(q: string) {
     const trimmed = q.trim();
     if (!trimmed) return;
@@ -189,7 +252,6 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
     setError(null);
     setResult(null);
 
-    // Stop audio if playing
     if (audioRef.current) {
       audioRef.current.pause();
       setIsPlayingAudio(false);
@@ -206,7 +268,6 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
       if (!data?.answer) throw new Error('अमान्य उत्तर प्रारूप');
 
       let audioUrl: string | null = null;
-      // Fetch high-quality Gnani AI TTS audio
       try {
         const spokenText = `${data.answer.spokenSummary || data.answer.summary}`;
         const ttsRes = await fetch('/api/dev/tts', {
@@ -244,10 +305,13 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
       audioRef.current.pause();
       setIsPlayingAudio(false);
     } else {
-      audioRef.current.play().then(() => setIsPlayingAudio(true)).catch((e) => {
-        console.warn('Playback error:', e);
-        setIsPlayingAudio(false);
-      });
+      audioRef.current
+        .play()
+        .then(() => setIsPlayingAudio(true))
+        .catch((e) => {
+          console.warn('Playback error:', e);
+          setIsPlayingAudio(false);
+        });
     }
   };
 
@@ -271,9 +335,11 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const currentCategory = INQUIRY_CATEGORIES.find((c) => c.id === activeCategory) || INQUIRY_CATEGORIES[0];
+
   return (
     <div className="w-full space-y-6">
-      {/* Search & Verification Card */}
+      {/* Search & Verification Box */}
       <div className="rounded-xl border-2 border-[#0A194E]/20 bg-white p-5 sm:p-7 shadow-md relative overflow-hidden">
         {/* Subtle Ashoka Chakra watermark in background */}
         <div className="absolute -right-8 -bottom-8 w-44 h-44 text-slate-100/50 pointer-events-none select-none text-9xl font-mono flex items-center justify-center opacity-40">
@@ -291,55 +357,57 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
                 {t.checkTitle}
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                {t.checkSub}
+                {lang === 'en-IN'
+                  ? 'Search ANY elector by Name or EPIC ID across 15,308 verified records, or ask any statutory rule question.'
+                  : '15,308 रिकॉर्ड्स में से किसी भी नागरिक का नाम/EPIC खोजें अथवा चुनावी प्रक्रिया व नियमों पर सवाल पूछें।'}
               </p>
             </div>
           </div>
 
-          {/* Input & Voice Controls */}
+          {/* Input & Voice Controls Form */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleVerify(question);
             }}
-            className="mt-5 space-y-3"
+            className="mt-5 space-y-4"
           >
-            <div className="relative flex items-center">
+            <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input
                 type="text"
                 value={question}
-                onChange={(e) => {
-                  setQuestion(e.target.value);
-                  latestTranscriptRef.current = e.target.value;
-                }}
-                placeholder={t.inputPlaceholder}
-                className="w-full rounded-lg border-2 border-slate-300 bg-slate-50/50 px-4 py-3.5 pr-28 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:border-[#0A194E] focus:bg-white focus:outline-none transition shadow-inner font-medium"
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder={
+                  lang === 'en-IN'
+                    ? 'Type any Name (e.g. Yuv Jindal), EPIC ID (e.g. IPS3346004), or election query…'
+                    : 'कोई भी नाम (उदा. युव जिंदल), पहचान पत्र (उदा. IPS3346004) या सवाल लिखें…'
+                }
+                disabled={busy || isListening}
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-xs focus:border-[#0A194E] focus:outline-none focus:ring-1 focus:ring-[#0A194E] disabled:bg-slate-50 transition"
               />
 
-              {/* Action Buttons inside Input */}
-              <div className="absolute right-2 flex items-center gap-1.5">
-                {/* Voice Input Microphone Button */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Ask by Voice Button (Universal MediaRecorder + Gemini 2.5 Flash Audio) */}
                 <button
                   type="button"
-                  onClick={toggleVoiceInput}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition shadow-xs cursor-pointer ${
+                  onClick={toggleVoice}
+                  disabled={busy}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3.5 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer ${
                     isListening
-                      ? 'bg-red-600 text-white animate-pulse ring-2 ring-red-400'
-                      : 'bg-amber-100 text-[#E65100] hover:bg-amber-200 border border-amber-300'
+                      ? 'bg-red-600 border-red-700 text-white animate-pulse'
+                      : 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900'
                   }`}
                   title={isListening ? t.btnStop : t.btnVoice}
                 >
                   <span className="text-sm">{isListening ? '⏹️' : '🎙️'}</span>
-                  <span className="hidden sm:inline">
-                    {isListening ? `${t.btnStop} (${recordingSeconds}s)` : t.btnVoice}
-                  </span>
+                  <span>{isListening ? `${t.btnStop} (${recordingSeconds}s)` : t.btnVoice}</span>
                 </button>
 
                 {/* Submit Verify Button */}
                 <button
                   type="submit"
-                  disabled={busy || !question.trim()}
-                  className="rounded-md bg-[#0A194E] hover:bg-[#002147] px-3.5 py-2 text-xs font-bold text-white shadow-xs disabled:opacity-50 transition uppercase tracking-wider cursor-pointer"
+                  disabled={busy || !question.trim() || isListening}
+                  className="rounded-lg bg-[#0A194E] hover:bg-[#002147] px-4 py-2.5 text-xs font-bold text-white shadow-xs disabled:opacity-50 transition uppercase tracking-wider cursor-pointer"
                 >
                   {busy ? '...' : t.btnCheck}
                 </button>
@@ -354,7 +422,7 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
                   </span>
-                  <span>🔴 {t.btnListening} ({recordingSeconds}s) — बोलिए...</span>
+                  <span>🔴 {t.btnListening} ({recordingSeconds}s) — बोलिए... (Recording live audio)</span>
                   <div className="hidden sm:flex items-center gap-1 text-slate-500 font-mono text-[10px]">
                     <span className="animate-bounce">●</span>
                     <span className="animate-bounce delay-100">●</span>
@@ -363,7 +431,7 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
                 </div>
                 <button
                   type="button"
-                  onClick={stopVoiceInput}
+                  onClick={stopVoiceRecording}
                   className="rounded bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs font-bold shadow-xs transition cursor-pointer"
                 >
                   {t.btnStop} &amp; {t.btnCheck} ✓
@@ -371,34 +439,66 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
               </div>
             )}
 
-            {/* Example Queries Chips */}
-            <div className="pt-1">
-              <div className="text-[11px] font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
-                <span>⚡</span>
-                <span>त्वरित परीक्षण प्रश्न (Frequent Inquiries · Click to Verify):</span>
+            {/* Categorized Interactive Inquiry Switcher (Real Dataset Exploration) */}
+            <div className="pt-2">
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span>⚡</span>
+                  <span>{lang === 'en-IN' ? 'Explore Delhi Roll Dataset & Statutory Rules:' : 'दिल्ली निर्वाचक नामावली एवं विधिक नियम अन्वेषण:'}</span>
+                </div>
+                <span className="text-[10px] text-slate-500 font-normal">
+                  {lang === 'en-IN' ? '15,308 Records Live' : '15,308 मतदाता सक्रिय'}
+                </span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {t.examples.map((ex, idx) => (
+
+              {/* Category Tabs */}
+              <div className="flex flex-wrap gap-1.5 border-b border-slate-200 pb-2">
+                {INQUIRY_CATEGORIES.map((cat) => (
                   <button
-                    key={idx}
+                    key={cat.id}
                     type="button"
-                    onClick={() => {
-                      setQuestion(ex);
-                      latestTranscriptRef.current = ex;
-                      handleVerify(ex);
-                    }}
-                    className="rounded-full bg-slate-100 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 px-3 py-1 text-xs text-slate-700 transition text-left cursor-pointer"
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                      activeCategory === cat.id
+                        ? 'bg-[#0A194E] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
                   >
-                    "{ex}"
+                    <span>{cat.icon}</span>
+                    <span>{lang === 'en-IN' ? cat.labelEn : cat.labelHi}</span>
                   </button>
                 ))}
+              </div>
+
+              {/* Selected Category Hint & Query Chips */}
+              <div className="mt-2.5">
+                <p className="text-[11px] text-slate-500 mb-2 italic">
+                  ℹ️ {lang === 'en-IN' ? currentCategory.hintEn : currentCategory.hintHi}
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {currentCategory.queries.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setQuestion(item.q);
+                        handleVerify(item.q);
+                      }}
+                      className="rounded-full bg-slate-50 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 px-3 py-1 text-xs text-slate-800 transition text-left cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    >
+                      <span className="text-slate-400 font-mono text-[10px]">↗</span>
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </form>
 
           {/* Error Notice */}
           {error && (
-            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-800 flex items-center gap-2">
+            <div className="mt-4 rounded-lg bg-red-50 border border-red-300 p-3 text-xs text-red-900 font-medium flex items-center gap-2">
               <span>⚠️</span>
               <span>{error}</span>
             </div>
@@ -406,23 +506,16 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
         </div>
       </div>
 
-      {/* Official Verdict Certificate Result Card */}
+      {/* Verification Result Section */}
       {result && (
-        <div className="rounded-xl border-2 border-slate-300 bg-white p-6 shadow-md space-y-5 animate-in fade-in-50 duration-200 relative overflow-hidden">
-          {/* Top Tricolor Accent on Verdict Card */}
-          <div className="absolute top-0 left-0 right-0 h-1 flex">
-            <div className="flex-1 bg-[#FF671F]" />
-            <div className="flex-1 bg-white" />
-            <div className="flex-1 bg-[#046A38]" />
-          </div>
-
-          {/* Verdict Header with Official Stamps */}
-          <div className="flex flex-wrap items-start justify-between gap-4 pt-1 border-b border-slate-200 pb-4">
+        <div className="rounded-xl border-2 border-slate-200 bg-white p-5 sm:p-7 shadow-lg space-y-6">
+          {/* Top Result Banner */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
             <div>
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+              <span className="text-[10px] uppercase font-bold text-slate-500 block">
                 आधिकारिक ऑडिट परिणाम · OFFICIAL AUDIT VERDICT
               </span>
-              <div className="mt-1 flex items-center gap-2.5">
+              <div className="mt-1">
                 {result.answer.verdict === 'VERIFIED' ? (
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-100 border-2 border-emerald-600 px-3 py-1 text-sm font-black text-emerald-900 tracking-wide uppercase shadow-xs">
                     <span>✓</span> {t.verdicts.VERIFIED}
@@ -459,9 +552,11 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
           <div>
             <div className="text-xs font-semibold text-slate-500">सत्यापित प्रश्न (Audited Query):</div>
             <div className="text-sm font-bold text-slate-900 mt-0.5 italic">"{result.question}"</div>
-            <p className="mt-2 text-sm leading-relaxed text-slate-800 font-medium bg-slate-50 p-3.5 rounded-lg border border-slate-200">
-              {result.answer.summary}
-            </p>
+
+            {/* Structured Elector Card View & Clean Markdown Typography */}
+            <div className="mt-3 bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200">
+              <ElectorCardView text={result.answer.summary} lang={lang} />
+            </div>
           </div>
 
           {/* Gnani Voice AI Audio Player */}
@@ -528,51 +623,57 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
               <div className="grid sm:grid-cols-2 gap-2 text-[11px] font-mono">
                 <div className="bg-slate-900/90 p-2 rounded border border-slate-800">
                   <span className="text-slate-400 block text-[9px] uppercase tracking-wider">Merkle Root Hash</span>
-                  <span className="text-amber-200 truncate block font-bold text-[10px]">{result.answer.blockchain.merkleRoot}</span>
+                  <span className="text-emerald-400 truncate block font-bold">
+                    {result.answer.blockchain.merkleRoot}
+                  </span>
                 </div>
                 <div className="bg-slate-900/90 p-2 rounded border border-slate-800">
-                  <span className="text-slate-400 block text-[9px] uppercase tracking-wider">Leaf / Audit Proof Hash</span>
-                  <span className="text-slate-300 truncate block font-bold text-[10px]">{result.answer.blockchain.electorOrQueryHash}</span>
+                  <span className="text-slate-400 block text-[9px] uppercase tracking-wider">Smart Contract</span>
+                  <span className="text-amber-400 truncate block font-bold">
+                    {result.answer.blockchain.contractAddress}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px] text-slate-400">
-                <span>Block #{result.answer.blockchain.blockNumber} · Contract: {result.answer.blockchain.contractAddress.slice(0, 14)}...</span>
-                <a
-                  href={result.answer.blockchain.explorerUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-amber-300 hover:text-amber-200 font-bold underline flex items-center gap-1"
-                >
-                  <span>Polygonscan पर देखें</span>
-                  <span>↗</span>
-                </a>
+              <div className="flex flex-wrap items-center justify-between text-[11px] pt-1 text-slate-400">
+                <span>
+                  Anchor Block: <strong className="text-slate-200">#{result.answer.blockchain.blockNumber}</strong> (Polygon PoS)
+                </span>
+                {result.answer.blockchain.explorerUrl && (
+                  <a
+                    href={result.answer.blockchain.explorerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-amber-400 hover:text-amber-300 font-bold underline"
+                  >
+                    Polygonscan पर ऑन-चेन सत्यापन देखें ↗
+                  </a>
+                )}
               </div>
             </div>
           )}
 
-          {/* Action Bar (WhatsApp & Copy) */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-xs">
-            <span className="text-[11px] text-slate-500">
-              विधिक संदर्भ: लोक प्रतिनिधित्व अधिनियम 1950 (धारा 22/23)
-            </span>
+          {/* Social Share & Copy Footer */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleShareWhatsApp}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-1.5 font-bold text-white shadow-xs hover:bg-[#20bd5a] transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-md bg-[#25D366] hover:bg-[#20ba5a] text-white px-3 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer"
               >
-                <span>💬</span>
-                <span>{t.shareWhatsApp}</span>
+                <span>💬</span> {t.shareWhatsApp}
               </button>
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 text-xs font-bold transition border border-slate-300 cursor-pointer"
               >
-                <span>🔗</span>
-                <span>{copied ? t.copied : t.copyLink}</span>
+                <span>🔗</span> {copied ? t.copied : t.copyLink}
               </button>
+            </div>
+
+            <div className="text-[11px] text-slate-500 italic">
+              {lang === 'en-IN' ? 'ECI Statutory Roll Verification Protocol' : 'भारत निर्वाचन आयोग विधिक नामावली सत्यापन प्रोटोकॉल'}
             </div>
           </div>
         </div>
