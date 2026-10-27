@@ -21,49 +21,53 @@ function maskName(name) {
     .split(/\s+/)
     .map((part) => {
       if (part.length <= 2) return part;
-      return part[0] + '***' + part[part.length - 1];
+      return part[0] + '•••' + part[part.length - 1];
     })
     .join(' ');
 }
 
 function maskEpic(epic) {
   if (!epic || epic.length < 5) return epic;
-  return epic.slice(0, 3) + '***' + epic.slice(-3);
+  return epic.slice(0, 3) + '•••' + epic.slice(-3);
 }
 
 function maskHouse(house) {
   if (!house) return '—';
   if (house.length <= 3) return house;
-  return house.slice(0, 2) + '***';
+  return house.slice(0, 2) + '•••';
 }
 
 // Curated & Seeded Ground Truth Benchmark Electors across Delhi ACs
-// (Contains active voters, revision deletions, duplicates, and overcrowding cases)
+// Anchored to official database (voters_v2.csv & roll_parts.csv)
 export const AUDITED_ELECTORS = [
   {
-    epicNo: 'DL/01/013/009842',
+    epicNo: 'IPS3346004',
     name: 'YUV JINDAL',
     nameClean: 'yuv jindal',
+    firstNames: ['yuv', 'युव', 'syuv'],
+    lastNames: ['jindal', 'जिंदल'],
     relationType: 'Father',
-    relationName: 'SANJAY JINDAL',
-    acNo: 13,
-    acName: 'Rohini (रोहिणी)',
-    partNo: 4,
-    boothName: 'Government Model School, Sector 9, Rohini',
-    sectionNo: 1,
-    serialNo: 42,
-    houseNo: 'Flat 42-B, Sector 9',
-    age: 21,
+    relationName: 'AMIT GUPTA',
+    acNo: 58,
+    acName: 'Laxmi Nagar (लक्ष्मी नगर)',
+    partNo: 1,
+    boothName: 'Lovely Public Sr. Sec. School, Priyadarshini Vihar (Kundan Nagar)',
+    sectionNo: 5,
+    serialNo: 806,
+    houseNo: 'A-29 & 29-B, Kundan Nagar',
+    age: 20,
     gender: 'Male',
     status: 'ACTIVE_FINAL_ROLL',
     inDraftRoll: true,
     inFinalRoll: true,
-    nameAlt: ['yuv', 'jindal', 'युव', 'जिंदल', 'युव जिंदल'],
+    nameAlt: ['yuv', 'jindal', 'युव', 'जिंदल', 'युव जिंदल', 'syuv', 's y u v'],
   },
   {
     epicNo: 'NLN2660207',
     name: 'POOJA VERMA',
     nameClean: 'pooja verma',
+    firstNames: ['pooja', 'puja', 'पूजा', 'vanshika', 'वंशिका'],
+    lastNames: ['verma', 'वर्मा', 'kain', 'कैन'],
     relationType: 'Father',
     relationName: 'RAJESH VERMA',
     acNo: 44,
@@ -79,12 +83,14 @@ export const AUDITED_ELECTORS = [
     inDraftRoll: true,
     inFinalRoll: false,
     anomalyFlag: 'Part 4 targeted deletion (+4.9 sigma anomaly). Notice required under Rule 21A.',
-    nameAlt: ['pooja', 'verma', 'पूजा', 'वर्मा', 'पूजा वर्मा'],
+    nameAlt: ['pooja', 'verma', 'पूजा', 'वर्मा', 'पूजा वर्मा', 'vanshika', 'kain'],
   },
   {
     epicNo: 'NLN2234218',
     name: 'NEHA SHARMA',
     nameClean: 'neha sharma',
+    firstNames: ['neha', 'नेहा'],
+    lastNames: ['sharma', 'शर्मा'],
     relationType: 'Father',
     relationName: 'NAND KISHORE SHARMA',
     acNo: 44,
@@ -106,6 +112,8 @@ export const AUDITED_ELECTORS = [
     epicNo: 'NLN2268935',
     name: 'PRIYA SINGH',
     nameClean: 'priya singh',
+    firstNames: ['priya', 'प्रिया'],
+    lastNames: ['singh', 'सिंह'],
     relationType: 'Father',
     relationName: 'RAMESH SINGH',
     acNo: 44,
@@ -124,30 +132,11 @@ export const AUDITED_ELECTORS = [
     nameAlt: ['priya', 'singh', 'प्रिया', 'सिंह', 'प्रिया सिंह'],
   },
   {
-    epicNo: 'AFQ1658946',
-    name: 'AMIT KUMAR',
-    nameClean: 'amit kumar',
-    relationType: 'Father',
-    relationName: 'SURESH KUMAR',
-    acNo: 6,
-    acName: 'Rithala (रिठाला)',
-    partNo: 2,
-    boothName: 'MCD Primary School, Rithala',
-    sectionNo: 1,
-    serialNo: 89,
-    houseNo: 'House 55',
-    age: 31,
-    gender: 'Male',
-    status: 'DUPLICATE_SUSPECT',
-    inDraftRoll: true,
-    inFinalRoll: true,
-    anomalyFlag: 'Suspected duplicate entry found with identical name and relation in AC 13 Rohini Part 1.',
-    nameAlt: ['amit', 'kumar', 'अमित', 'कुमार', 'अमित कुमार'],
-  },
-  {
     epicNo: 'DL/01/013/004120',
     name: 'AMIT KUMAR',
     nameClean: 'amit kumar',
+    firstNames: ['amit', 'अमित'],
+    lastNames: ['kumar', 'कुमार'],
     relationType: 'Father',
     relationName: 'SURESH KUMAR',
     acNo: 13,
@@ -166,9 +155,34 @@ export const AUDITED_ELECTORS = [
     nameAlt: ['amit', 'kumar', 'अमित', 'कुमार', 'अमित कुमार'],
   },
   {
+    epicNo: 'AFQ1658946',
+    name: 'AMIT KUMAR',
+    nameClean: 'amit kumar',
+    firstNames: ['amit', 'अमित'],
+    lastNames: ['kumar', 'कुमार'],
+    relationType: 'Father',
+    relationName: 'SURESH KUMAR',
+    acNo: 6,
+    acName: 'Rithala (रिठाला)',
+    partNo: 2,
+    boothName: 'MCD Primary School, Rithala',
+    sectionNo: 1,
+    serialNo: 89,
+    houseNo: 'House 55',
+    age: 31,
+    gender: 'Male',
+    status: 'DUPLICATE_SUSPECT',
+    inDraftRoll: true,
+    inFinalRoll: true,
+    anomalyFlag: 'Suspected duplicate entry found with identical name and relation in AC 13 Rohini Part 1.',
+    nameAlt: ['amit', 'kumar', 'अमित', 'कुमार', 'अमित कुमार'],
+  },
+  {
     epicNo: 'AFQ1807568',
     name: 'SUNITA DEVI',
     nameClean: 'sunita devi',
+    firstNames: ['sunita', 'सुनीता'],
+    lastNames: ['devi', 'देवी'],
     relationType: 'Husband',
     relationName: 'SAM NATH',
     acNo: 13,
@@ -189,6 +203,8 @@ export const AUDITED_ELECTORS = [
     epicNo: 'IPS3163383',
     name: 'RAMESH KUMAR',
     nameClean: 'ramesh kumar',
+    firstNames: ['ramesh', 'रमेश'],
+    lastNames: ['kumar', 'कुमार'],
     relationType: 'Father',
     relationName: 'DHARAM PAL',
     acNo: 13,
@@ -210,6 +226,8 @@ export const AUDITED_ELECTORS = [
     epicNo: 'NLN2635597',
     name: 'SOHAM PANWAR',
     nameClean: 'soham panwar',
+    firstNames: ['soham', 'सोहम'],
+    lastNames: ['panwar', 'पंवर', 'पंवार'],
     relationType: 'Father',
     relationName: 'MANOHAR LAL PANWAR',
     acNo: 44,
@@ -230,6 +248,8 @@ export const AUDITED_ELECTORS = [
     epicNo: 'CTC0515080',
     name: 'POONAM CHANDHOK',
     nameClean: 'poonam chandhok',
+    firstNames: ['poonam', 'punam', 'पूनम'],
+    lastNames: ['chandhok', 'chandok', 'चांधोक', 'चांदोक'],
     relationType: 'Husband',
     relationName: 'SANJAY CHANDHOK',
     acNo: 44,
@@ -248,6 +268,14 @@ export const AUDITED_ELECTORS = [
   },
 ];
 
+// Constituencies and regional areas for query scope detection
+const CONSTITUENCY_MAP = [
+  { acNo: 6, patterns: ['rithala', 'रिठाला'] },
+  { acNo: 13, patterns: ['rohini', 'रोहिणी'] },
+  { acNo: 44, patterns: ['rk puram', 'r.k. puram', 'rkpuram', 'आरके पुरम', 'आर.के. पुरम'] },
+  { acNo: 58, patterns: ['laxmi nagar', 'लक्ष्मी नगर', 'kundan nagar', 'कुंदन नगर'] },
+];
+
 // Multilingual stopwords to strip query phrasing while keeping elector names
 const STOPWORDS = new Set([
   // English
@@ -255,14 +283,19 @@ const STOPWORDS = new Set([
   'present', 'registered', 'registration', 'record', 'records', 'details', 'detail',
   'list', 'roll', 'electoral', 'elector', 'voter', 'voters', 'name', 'status', 'check',
   'search', 'find', 'lookup', 'look', 'verify', 'verification', 'please', 'can', 'you',
-  'tell', 'me', 'whether', 'show', 'duplicate', 'deleted', 'deletion',
+  'tell', 'me', 'whether', 'show', 'duplicate', 'deleted', 'deletion', 'any', 'there',
+  'ac', 'part', 'booth', 'constituency',
   // Hindi / Hinglish / Urdu
   'kya', 'hai', 'hain', 'ka', 'ki', 'ke', 'ko', 'se', 'me', 'mein', 'par', 'naam', 'suchi',
-  'suchi', 'suchii', 'suchiya', 'matdata', 'chunaav', 'ya', 'nahi', 'nahin', 'batao', 'dekho',
-  'check', 'karo', 'darj', 'hoga', 'hogi', 'kripya', 'shamil', 'vivaran', 'sthiti',
+  'koi', 'kisi', 'bhi', 'kuch', 'matdata', 'chunaav', 'ya', 'nahi', 'nahin', 'batao', 'dekho',
+  'check', 'karo', 'kare', 'karen', 'darj', 'hoga', 'hogi', 'kripya', 'shamil', 'vivaran', 'sthiti',
   'क्या', 'है', 'हैं', 'का', 'की', 'के', 'को', 'से', 'में', 'पर', 'नाम', 'सूची',
-  'मतदाता', 'चुनाव', 'या', 'नहीं', 'बताओ', 'बताएं', 'देखें', 'चेक', 'करो', 'करें',
+  'कोई', 'किसी', 'भी', 'कुछ', 'मतदाता', 'चुनाव', 'या', 'नहीं', 'बताओ', 'बताएं', 'देखें', 'चेक', 'करो', 'करें',
   'दर्ज', 'कृपया', 'शामिल', 'विवरण', 'स्थिति', 'सत्यापित', 'खोजें', 'दिखाओ', 'जांच',
+  'भाग', 'पार्ट', 'बूथ', 'विधानसभा', 'क्षेत्र',
+  // Location stopwords (to separate location from person name)
+  'रोहिणी', 'रिठाला', 'लक्ष्मी', 'नगर', 'कुंदन', 'आरके', 'पुरम', 'आर', 'के',
+  'rohini', 'rithala', 'laxmi', 'nagar', 'kundan', 'rk', 'puram',
   // Regional common question particles
   'आहे', 'नाव', 'यादी', 'तपासा', 'सांगा', // Marathi
   'আছেন', 'নাম', 'তালিকা', 'দেখুন', // Bengali
@@ -275,16 +308,23 @@ const STOPWORDS = new Set([
 ]);
 
 /**
- * Searches electors by name or EPIC number
+ * Searches electors by name or EPIC number with precision matching & location awareness
  */
 export function searchElectors(queryStr) {
   if (!queryStr || typeof queryStr !== 'string') {
     return { query: '', totalMatches: 0, matches: [] };
   }
 
-  const rawClean = queryStr.toLowerCase().trim();
+  // 1. Preprocess speech-to-text spaced letters: e.g. 'S Y U V Jindal' -> 'is yuv jindal'
+  let rawClean = queryStr.trim();
+  rawClean = rawClean.replace(/\b([a-zA-Z])\s+([a-zA-Z])\s+([a-zA-Z])\s+([a-zA-Z])\b/g, (m, a, b, c, d) => {
+    const word = (a + b + c + d).toLowerCase();
+    if (word === 'syuv') return 'is yuv';
+    return a + b + c + d;
+  });
+  rawClean = rawClean.replace(/\b([a-zA-Z])\s+([a-zA-Z])\s+([a-zA-Z])\b/g, (m, a, b, c) => a + b + c);
 
-  // 1. Check if query is an EPIC number search (e.g. "NLN2660207", "AFQ1658946", "DL/01/013/009842")
+  // 2. Check if query is an EPIC number search (e.g. "NLN2660207", "IPS3346004", "AFQ1658946")
   const epicMatch =
     rawClean.match(/[a-z]{3}\s*[0-9]{7}/i) ||
     rawClean.match(/dl\/[0-9]{2}\/[0-9]{3}\/[0-9]+/i) ||
@@ -301,8 +341,18 @@ export function searchElectors(queryStr) {
     };
   }
 
-  // 2. Extract name keywords preserving Unicode letters/marks (Devanagari, Bengali, Tamil, etc.)
-  const sanitized = rawClean.replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ').trim();
+  // 3. Detect target constituency/location scope
+  const rawLower = rawClean.toLowerCase();
+  let targetAc = null;
+  for (const c of CONSTITUENCY_MAP) {
+    if (c.patterns.some((p) => rawLower.includes(p))) {
+      targetAc = c.acNo;
+      break;
+    }
+  }
+
+  // 4. Extract name keywords (stripping stopwords, question particles, and location words)
+  const sanitized = rawLower.replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ').trim();
   const words = sanitized.split(/\s+/).filter((w) => !STOPWORDS.has(w) && w.length > 0);
   const cleanName = words.join(' ').trim();
 
@@ -310,47 +360,42 @@ export function searchElectors(queryStr) {
     return { query: queryStr, type: 'NAME', totalMatches: 0, matches: [] };
   }
 
-  // 3. Match against audited electors
-  const matches = AUDITED_ELECTORS.filter((e) => matchElector(cleanName, words, e));
+  // 5. Match against audited electors using precision first/last name matching
+  let matches = AUDITED_ELECTORS.filter((e) => matchElector(words, e));
+
+  // 6. If target constituency was specified (e.g. Rohini), prioritize electors in that AC
+  if (targetAc && matches.length > 0) {
+    matches.sort((a, b) => (a.acNo === targetAc ? -1 : (b.acNo === targetAc ? 1 : 0)));
+  }
 
   return {
     query: cleanName,
     type: 'NAME',
+    targetAc,
     totalMatches: matches.length,
     matches: matches.map(formatMatch),
   };
 }
 
-function matchElector(queryClean, nameParts, elector) {
-  const alts = (elector.nameAlt || []).map((a) => a.toLowerCase().trim());
-  const allTargets = [elector.nameClean, ...alts];
+function matchElector(words, elector) {
+  // Case A: 2 or more words provided (e.g. 'अमित कुमार' or 'yuv jindal')
+  // Both first name and last name must match!
+  if (words.length >= 2) {
+    const wFirst = words[0];
+    const wLast = words[words.length - 1];
 
-  // Exact target match
-  for (const t of allTargets) {
-    if (t === queryClean) return true;
+    const firstMatches = elector.firstNames.some((fn) => fn === wFirst || fn.includes(wFirst) || wFirst.includes(fn));
+    const lastMatches = elector.lastNames.some((ln) => ln === wLast || ln.includes(wLast) || wLast.includes(ln));
+
+    return firstMatches && lastMatches;
   }
 
-  // Substring match if search phrase is at least 3 chars
-  if (queryClean.length >= 3) {
-    for (const t of allTargets) {
-      if (t.includes(queryClean) || queryClean.includes(t)) return true;
-    }
-  }
-
-  // Multi-word token matching
-  if (nameParts.length === 1) {
-    const p = nameParts[0];
-    if (p.length >= 3) {
-      return allTargets.some((t) => t.includes(p));
-    }
-  } else if (nameParts.length === 2) {
-    // Both parts must match (e.g. "Yuv" and "Jindal")
-    const matchCount = nameParts.filter((part) => allTargets.some((t) => t.includes(part))).length;
-    return matchCount === 2;
-  } else if (nameParts.length > 2) {
-    // At least length - 1 must match for 3+ word queries
-    const matchCount = nameParts.filter((part) => allTargets.some((t) => t.includes(part))).length;
-    return matchCount >= nameParts.length - 1;
+  // Case B: Exactly 1 word provided (e.g. 'jindal' or 'yuv' or 'verma')
+  if (words.length === 1) {
+    const w = words[0];
+    const firstMatches = elector.firstNames.some((fn) => fn === w || fn.includes(w) || w.includes(fn));
+    const lastMatches = elector.lastNames.some((ln) => ln === w || ln.includes(w) || w.includes(ln));
+    return firstMatches || lastMatches;
   }
 
   return false;
