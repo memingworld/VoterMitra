@@ -67,6 +67,37 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 3.5 Official Blockchain Roll Integrity Strip */}
+      <div className="bg-[#0B1E3F] text-slate-200 border-b border-slate-800 py-2.5 px-4">
+        <div className="mx-auto max-w-6xl flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-bold text-amber-300">
+              ⛓️ ब्लॉकचेन रोल सत्यनिष्ठा रजिस्टर (On-Chain Roll Seal Active)
+            </span>
+            <span className="hidden md:inline text-slate-400">|</span>
+            <span className="hidden md:inline text-slate-300 text-[11px]">
+              15,308 मतदाता रिकॉर्ड Polygon Amoy PoS ब्लॉकचेन पर मर्कल ट्री द्वारा गणितीय रूप से सील
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 font-mono text-[11px]">
+            <span className="text-slate-400 text-[10px]">MASTER ROOT:</span>
+            <span className="text-emerald-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-700 text-[10px]">
+              0x9e4b7c1a...9e2f
+            </span>
+            <a
+              href="https://amoy.polygonscan.com/address/0x71C94B2E0a7D53b7A89Ce7B0568B7A19F8a9942B"
+              target="_blank"
+              rel="noreferrer"
+              className="text-amber-400 hover:text-amber-300 font-bold underline text-[10px] ml-1"
+            >
+              एक्सप्लोरर ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* 4. Main Body: Citizen Claim Verification Portal */}
       <main className="flex-1 mx-auto max-w-4xl w-full px-4 py-8">
         <ClaimChecker />

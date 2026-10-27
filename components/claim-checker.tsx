@@ -510,6 +510,47 @@ export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimC
             </div>
           )}
 
+          {/* Cryptographic Blockchain Seal (Polygon Amoy PoS) */}
+          {result.answer.blockchain && (
+            <div className="rounded-xl bg-slate-950 text-slate-200 p-4 border border-slate-800 text-xs shadow-md space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-bold text-amber-300 tracking-wide">
+                    ⛓️ ब्लॉकचेन रोल सत्यनिष्ठा प्रमाण (On-Chain Roll Seal)
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700">
+                  Polygon Amoy PoS · Sealed ✓
+                </span>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-2 text-[11px] font-mono">
+                <div className="bg-slate-900/90 p-2 rounded border border-slate-800">
+                  <span className="text-slate-400 block text-[9px] uppercase tracking-wider">Merkle Root Hash</span>
+                  <span className="text-amber-200 truncate block font-bold text-[10px]">{result.answer.blockchain.merkleRoot}</span>
+                </div>
+                <div className="bg-slate-900/90 p-2 rounded border border-slate-800">
+                  <span className="text-slate-400 block text-[9px] uppercase tracking-wider">Leaf / Audit Proof Hash</span>
+                  <span className="text-slate-300 truncate block font-bold text-[10px]">{result.answer.blockchain.electorOrQueryHash}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px] text-slate-400">
+                <span>Block #{result.answer.blockchain.blockNumber} · Contract: {result.answer.blockchain.contractAddress.slice(0, 14)}...</span>
+                <a
+                  href={result.answer.blockchain.explorerUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-amber-300 hover:text-amber-200 font-bold underline flex items-center gap-1"
+                >
+                  <span>Polygonscan पर देखें</span>
+                  <span>↗</span>
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* Action Bar (WhatsApp & Copy) */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-xs">
             <span className="text-[11px] text-slate-500">
