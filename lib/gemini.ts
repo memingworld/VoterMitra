@@ -11,7 +11,8 @@ export interface GeminiAuditResult {
   sources: string[];
 }
 
-const SYSTEM_INSTRUCTION = `
+function getSystemInstruction(lang: string, langName: string): string {
+  return `
 You are VoterMitra (मतदाता मित्र), the official AI electoral verification intelligence of the Election Commission of India (ECI).
 Your mission is to provide accurate, transparent, and authoritative guidance on electoral roll audits, ECI statutory rules, and citizen voter rights.
 
@@ -52,9 +53,22 @@ Always respond with a valid JSON object strictly matching this schema:
 }
 
 LANGUAGE REQUIREMENT:
-Write "summary", "spokenSummary", and "reasoning" in the user's requested language.
+The user has selected Target Language: "${lang}" (${langName}).
+CRITICAL REQUIREMENT: You MUST write "summary", "spokenSummary", and all items in "reasoning" strictly in the target language (${langName}).
+- If Target Language is English (en-IN), write entirely in English.
+- If Target Language is Marathi (mr-IN), write entirely in Marathi.
+- If Target Language is Bengali (bn-IN), write entirely in Bengali.
+- If Target Language is Tamil (ta-IN), write entirely in Tamil.
+- If Target Language is Telugu (te-IN), write entirely in Telugu.
+- If Target Language is Gujarati (gu-IN), write entirely in Gujarati.
+- If Target Language is Kannada (kn-IN), write entirely in Kannada.
+- If Target Language is Malayalam (ml-IN), write entirely in Malayalam.
+- If Target Language is Punjabi (pa-IN), write entirely in Punjabi.
+- If Target Language is Hindi (hi-IN), write entirely in Hindi.
+DO NOT use Hindi unless the requested Target Language is Hindi (hi-IN).
 Do NOT output markdown code fences around JSON if possible, just raw JSON.
 `;
+}
 
 export async function askGemini(
   query: string,
@@ -63,9 +77,23 @@ export async function askGemini(
   const apiKey = env().GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
 
+  const langNames: Record<string, string> = {
+    'hi-IN': 'Hindi',
+    'en-IN': 'English',
+    'mr-IN': 'Marathi',
+    'bn-IN': 'Bengali',
+    'ta-IN': 'Tamil',
+    'te-IN': 'Telugu',
+    'gu-IN': 'Gujarati',
+    'kn-IN': 'Kannada',
+    'ml-IN': 'Malayalam',
+    'pa-IN': 'Punjabi',
+  };
+  const langName = langNames[lang] || 'Hindi';
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-  const prompt = `User Query: "${query}"\nTarget Language Code: "${lang}"\nAnalyze this query and return the JSON response.`;
+  const prompt = `User Query: "${query}"\nTarget Language: "${langName}" (Language Code: "${lang}")\nAnalyze this query and return the JSON response in ${langName}.`;
 
   try {
     const res = await fetch(url, {
@@ -73,7 +101,7 @@ export async function askGemini(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         system_instruction: {
-          parts: [{ text: SYSTEM_INSTRUCTION }],
+          parts: [{ text: getSystemInstruction(lang, langName) }],
         },
         contents: [
           {
