@@ -202,6 +202,8 @@ export async function getOverview() {
   };
 }
 
+export type OverviewResult = Awaited<ReturnType<typeof getOverview>>;
+
 /* ---------- benchmark ---------- */
 
 export async function getBenchmark() {
@@ -265,6 +267,8 @@ export async function getBenchmark() {
     ],
   };
 }
+
+export type BenchmarkResult = Awaited<ReturnType<typeof getBenchmark>>;
 
 /* ---------- flag detail + reviews ---------- */
 

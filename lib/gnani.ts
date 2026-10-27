@@ -151,7 +151,7 @@ export async function synthesize(
   const format = options.format ?? 'wav';
 
   const audioConfig = {
-    encoding: format === 'ogg' ? 'opus' : format === 'mp3' ? 'mp3' : 'linear_pcm',
+    encoding: format === 'ogg' ? 'oggopus' : format === 'mp3' ? 'mp3' : 'linear_pcm',
     container: format,
     num_channels: 1,
     sample_rate: 48000,

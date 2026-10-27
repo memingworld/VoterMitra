@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { AssistantAnswer } from '@/lib/assistant';
-import { I18N_DICTIONARY, type LanguageCode } from '@/lib/languages';
+import { type LanguageCode } from '@/lib/languages';
+import { useLanguage } from '@/components/language-context';
 
 type Result = {
   answer: AssistantAnswer;
@@ -15,11 +16,14 @@ interface ClaimCheckerProps {
   onLanguageChange?: (lang: LanguageCode) => void;
 }
 
-export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimCheckerProps) {
-  const [lang, setLang] = useState<LanguageCode>(currentLang);
+export function ClaimChecker({ currentLang: propLang, onLanguageChange }: ClaimCheckerProps) {
+  const { lang: contextLang, setLang: contextSetLang, t } = useLanguage();
+  const lang = propLang || contextLang;
+
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -28,105 +32,131 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const isRecordingRef = useRef(false);
-  const accumulatedRef = useRef('');
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Sync external language changes
-  useEffect(() => {
-    setLang(currentLang);
-  }, [currentLang]);
-
-  const t = I18N_DICTIONARY[lang] || I18N_DICTIONARY['hi-IN'];
+  const latestTranscriptRef = useRef('');
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const maxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Initialize Speech Recognition for browser microphone
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true; // Stay open until user stops
-        recognition.interimResults = true;
-        recognition.lang = lang;
+    if (typeof window === 'undefined') return;
 
-        recognition.onstart = () => {
-          setIsListening(true);
-          setError(null);
-        };
-
-        recognition.onresult = (event: any) => {
-          let currentInterim = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              accumulatedRef.current += (accumulatedRef.current ? ' ' : '') + transcript;
-            } else {
-              currentInterim += transcript;
-            }
-          }
-          const fullText = (accumulatedRef.current + ' ' + currentInterim).trim();
-          if (fullText) {
-            setQuestion(fullText);
-          }
-        };
-
-        recognition.onerror = (event: any) => {
-          console.warn('[speech recognition] error:', event.error);
-          if (event.error === 'not-allowed') {
-            isRecordingRef.current = false;
-            setIsListening(false);
-            setError('माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र में माइक्रोफोन अनुमति चालू करें।');
-          }
-        };
-
-        recognition.onend = () => {
-          // If the user hasn't clicked Stop yet, auto-restart to prevent 1-second silence drops
-          if (isRecordingRef.current) {
-            try {
-              recognition.start();
-            } catch {
-              // Ignore if already active
-            }
-          } else {
-            setIsListening(false);
-          }
-        };
-
-        recognitionRef.current = recognition;
+    // Clean up previous instance if any
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {
+        // Ignore
       }
+      recognitionRef.current = null;
     }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = lang;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setError(null);
+      };
+
+      recognition.onresult = (event: any) => {
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          fullTranscript += event.results[i][0].transcript + ' ';
+        }
+        const cleaned = fullTranscript.trim();
+        if (cleaned) {
+          latestTranscriptRef.current = cleaned;
+          setQuestion(cleaned);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        if (event.error === 'no-speech') {
+          // Normal pause in speaking; keep listening without showing error
+          return;
+        }
+        console.warn('[speech recognition] error:', event.error);
+        if (event.error === 'not-allowed') {
+          isRecordingRef.current = false;
+          setIsListening(false);
+          setError('माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र सेटिंग्स में माइक्रोफोन अनुमति चालू करें।');
+        }
+      };
+
+      recognition.onend = () => {
+        // If the user hasn't clicked stop yet, safely auto-restart after a brief delay
+        if (isRecordingRef.current) {
+          setTimeout(() => {
+            if (isRecordingRef.current && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch {
+                // Ignore if already starting or active
+              }
+            }
+          }, 250);
+        } else {
+          setIsListening(false);
+        }
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // Ignore
+        }
+      }
+    };
   }, [lang]);
 
   const startVoiceInput = () => {
     if (!recognitionRef.current) {
-      setError('इस ब्राउज़र में लाइव वॉयस रिकॉग्निशन समर्थित नहीं है। कृपया लिखकर प्रश्न पूछें।');
+      setError('इस ब्राउज़र में लाइव वॉयस रिकॉग्निशन समर्थित नहीं है। कृपया लिखकर प्रश्न पूछें या नीचे दिए गए त्वरित बटनों का उपयोग करें।');
       return;
     }
 
     isRecordingRef.current = true;
-    accumulatedRef.current = '';
+    latestTranscriptRef.current = '';
     setQuestion('');
     setError(null);
     setIsListening(true);
+    setRecordingSeconds(0);
 
     try {
       recognitionRef.current.lang = lang;
       recognitionRef.current.start();
     } catch {
-      // In case already listening
+      // In case already active
     }
 
-    // Auto-stop safety timeout after 15 seconds
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
+    // Recording seconds counter
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setRecordingSeconds((prev) => prev + 1);
+    }, 1000);
+
+    // Auto-stop safety timeout after 25 seconds
+    if (maxTimeoutRef.current) clearTimeout(maxTimeoutRef.current);
+    maxTimeoutRef.current = setTimeout(() => {
       if (isRecordingRef.current) {
         stopVoiceInput();
       }
-    }, 15000);
+    }, 25000);
   };
 
   const stopVoiceInput = () => {
     isRecordingRef.current = false;
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (maxTimeoutRef.current) clearTimeout(maxTimeoutRef.current);
 
     if (recognitionRef.current) {
       try {
@@ -138,12 +168,10 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
     setIsListening(false);
 
     // If text was spoken, automatically trigger verification
-    setTimeout(() => {
-      const textToVerify = (accumulatedRef.current || question).trim();
-      if (textToVerify.length >= 2) {
-        handleVerify(textToVerify);
-      }
-    }, 300);
+    const textToVerify = (latestTranscriptRef.current || question).trim();
+    if (textToVerify.length >= 2) {
+      handleVerify(textToVerify);
+    }
   };
 
   const toggleVoiceInput = () => {
@@ -257,7 +285,7 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-[#E65100] border border-amber-300">
-                <span>🛡️</span> आधिकारिक मतदाता सत्यापन प्रणाली
+                <span>🛡️</span> {lang === 'en-IN' ? 'Official Electoral Roll Verification' : 'आधिकारिक मतदाता सत्यापन प्रणाली'}
               </span>
               <h2 className="text-lg sm:text-xl font-bold text-[#0B1E3F] mt-1.5 tracking-tight">
                 {t.checkTitle}
@@ -280,9 +308,12 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
               <input
                 type="text"
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
+                onChange={(e) => {
+                  setQuestion(e.target.value);
+                  latestTranscriptRef.current = e.target.value;
+                }}
                 placeholder={t.inputPlaceholder}
-                className="w-full rounded-lg border-2 border-slate-300 bg-slate-50/50 px-4 py-3.5 pr-28 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:border-[#0A194E] focus:bg-white focus:outline-none transition shadow-inner"
+                className="w-full rounded-lg border-2 border-slate-300 bg-slate-50/50 px-4 py-3.5 pr-28 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:border-[#0A194E] focus:bg-white focus:outline-none transition shadow-inner font-medium"
               />
 
               {/* Action Buttons inside Input */}
@@ -291,16 +322,16 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
                 <button
                   type="button"
                   onClick={toggleVoiceInput}
-                  className={`inline-flex items-center gap-1 rounded-md px-2.5 py-2 text-xs font-bold transition shadow-xs ${
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition shadow-xs cursor-pointer ${
                     isListening
                       ? 'bg-red-600 text-white animate-pulse ring-2 ring-red-400'
                       : 'bg-amber-100 text-[#E65100] hover:bg-amber-200 border border-amber-300'
                   }`}
                   title={isListening ? t.btnStop : t.btnVoice}
                 >
-                  <span>{isListening ? '⏹️' : '🎙️'}</span>
+                  <span className="text-sm">{isListening ? '⏹️' : '🎙️'}</span>
                   <span className="hidden sm:inline">
-                    {isListening ? t.btnStop : t.btnVoice}
+                    {isListening ? `${t.btnStop} (${recordingSeconds}s)` : t.btnVoice}
                   </span>
                 </button>
 
@@ -308,26 +339,34 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
                 <button
                   type="submit"
                   disabled={busy || !question.trim()}
-                  className="rounded-md bg-[#0A194E] hover:bg-[#002147] px-3.5 py-2 text-xs font-bold text-white shadow-xs disabled:opacity-50 transition uppercase tracking-wider"
+                  className="rounded-md bg-[#0A194E] hover:bg-[#002147] px-3.5 py-2 text-xs font-bold text-white shadow-xs disabled:opacity-50 transition uppercase tracking-wider cursor-pointer"
                 >
                   {busy ? '...' : t.btnCheck}
                 </button>
               </div>
             </div>
 
-            {/* Listening Banner */}
+            {/* Listening Live Banner with Waveform & Stop */}
             {isListening && (
-              <div className="flex items-center justify-between rounded-lg bg-amber-50 border-2 border-amber-400 p-3 text-xs text-amber-950 font-bold animate-pulse">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-red-600 animate-ping" />
-                  <span>🎤 {t.btnListening}</span>
+              <div className="flex items-center justify-between rounded-lg bg-red-50 border-2 border-red-400 p-3 text-xs text-red-950 font-bold shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                  </span>
+                  <span>🔴 {t.btnListening} ({recordingSeconds}s) — बोलिए...</span>
+                  <div className="hidden sm:flex items-center gap-1 text-slate-500 font-mono text-[10px]">
+                    <span className="animate-bounce">●</span>
+                    <span className="animate-bounce delay-100">●</span>
+                    <span className="animate-bounce delay-200">●</span>
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={stopVoiceInput}
-                  className="rounded bg-[#E65100] hover:bg-[#FF671F] text-white px-2.5 py-1 text-[11px] font-bold shadow-xs transition"
+                  className="rounded bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs font-bold shadow-xs transition cursor-pointer"
                 >
-                  रोकें एवं जांचें (Done & Verify)
+                  {t.btnStop} &amp; {t.btnCheck} ✓
                 </button>
               </div>
             )}
@@ -336,7 +375,7 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
             <div className="pt-1">
               <div className="text-[11px] font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
                 <span>⚡</span>
-                <span>त्वरित परीक्षण प्रश्न (Frequent Inquiries):</span>
+                <span>त्वरित परीक्षण प्रश्न (Frequent Inquiries · Click to Verify):</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {t.examples.map((ex, idx) => (
@@ -345,9 +384,10 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
                     type="button"
                     onClick={() => {
                       setQuestion(ex);
+                      latestTranscriptRef.current = ex;
                       handleVerify(ex);
                     }}
-                    className="rounded-full bg-slate-100 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 px-3 py-1 text-xs text-slate-700 transition text-left"
+                    className="rounded-full bg-slate-100 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 px-3 py-1 text-xs text-slate-700 transition text-left cursor-pointer"
                   >
                     "{ex}"
                   </button>
@@ -431,7 +471,7 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
                 <button
                   type="button"
                   onClick={toggleAudio}
-                  className="w-10 h-10 rounded-full bg-[#E65100] text-white flex items-center justify-center shadow hover:bg-[#FF671F] transition text-base"
+                  className="w-10 h-10 rounded-full bg-[#E65100] text-white flex items-center justify-center shadow hover:bg-[#FF671F] transition text-base cursor-pointer"
                   title={isPlayingAudio ? 'रोकें' : 'सुनें'}
                 >
                   {isPlayingAudio ? '⏸️' : '▶️'}
@@ -479,7 +519,7 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
               <button
                 type="button"
                 onClick={handleShareWhatsApp}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-1.5 font-bold text-white shadow-xs hover:bg-[#20bd5a] transition"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-1.5 font-bold text-white shadow-xs hover:bg-[#20bd5a] transition cursor-pointer"
               >
                 <span>💬</span>
                 <span>{t.shareWhatsApp}</span>
@@ -487,7 +527,7 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer"
               >
                 <span>🔗</span>
                 <span>{copied ? t.copied : t.copyLink}</span>

@@ -2,14 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { SUPPORTED_LANGUAGES, type LanguageCode } from '@/lib/languages';
+import { useLanguage } from '@/components/language-context';
 
 interface GovHeaderProps {
-  currentLang: LanguageCode;
-  onLanguageChange: (lang: LanguageCode) => void;
+  currentLang?: LanguageCode;
+  onLanguageChange?: (lang: LanguageCode) => void;
 }
 
-export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
+export function GovHeader({ currentLang: propLang, onLanguageChange: propOnChange }: GovHeaderProps) {
+  const { lang: contextLang, setLang: contextSetLang, t } = useLanguage();
+  const activeLang = propLang || contextLang;
+  const handleLangChange = (code: LanguageCode) => {
+    if (propOnChange) propOnChange(code);
+    contextSetLang(code);
+  };
+
+  const pathname = usePathname();
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
   const [currentTime, setCurrentTime] = useState('');
 
@@ -43,6 +53,10 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
     }
   };
 
+  const isHome = pathname === '/';
+  const isDashboard = pathname === '/dashboard';
+  const isQueue = pathname?.startsWith('/dashboard/queue');
+
   return (
     <header className="w-full bg-white shadow-sm border-b border-slate-200">
       {/* 1. National Tricolor Top Strip (Saffron, White, Green) */}
@@ -59,11 +73,11 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
           <div className="flex items-center gap-2">
             <span className="inline-block w-3.5 h-2.5 bg-gradient-to-b from-[#FF671F] via-white to-[#046A38] rounded-[1px] shadow-xs" />
             <span className="font-semibold text-white tracking-wide">
-              भारत सरकार | Government of India
+              {activeLang === 'en-IN' ? 'Government of India' : 'भारत सरकार | Government of India'}
             </span>
             <span className="hidden sm:inline-block text-slate-400">·</span>
             <span className="hidden sm:inline-block text-slate-300">
-              राष्ट्रीय मतदाता सेवा पोर्टल (National Voter Portal)
+              {activeLang === 'en-IN' ? 'National Electoral Roll Transparency Portal' : 'राष्ट्रीय मतदाता सेवा एवं सत्यापन पोर्टल'}
             </span>
           </div>
 
@@ -104,13 +118,13 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
             <div className="flex items-center gap-1.5">
               <span className="text-slate-400">🌐</span>
               <select
-                value={currentLang}
-                onChange={(e) => onLanguageChange(e.target.value as LanguageCode)}
-                className="bg-slate-900 border border-slate-700 text-amber-300 rounded px-2 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-400"
+                value={activeLang}
+                onChange={(e) => handleLangChange(e.target.value as LanguageCode)}
+                className="bg-slate-900 border border-slate-700 text-amber-300 rounded px-2 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-400 cursor-pointer"
               >
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.label} ({lang.englishName})
+                {SUPPORTED_LANGUAGES.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.label} ({item.englishName})
                   </option>
                 ))}
               </select>
@@ -135,7 +149,7 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
             <div>
               <div className="flex items-center gap-2 justify-center md:justify-start">
                 <h1 className="text-base sm:text-lg font-bold text-[#0B1E3F] tracking-tight">
-                  भारत निर्वाचन आयोग
+                  {t.portalTitle}
                 </h1>
                 <span className="text-slate-300 font-light">|</span>
                 <span className="text-xs sm:text-sm font-semibold text-[#0B1E3F] tracking-wide uppercase">
@@ -143,10 +157,10 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
                 </span>
               </div>
               <div className="text-xs sm:text-sm font-bold text-[#E65100] mt-0.5">
-                मतदाता मित्र <span className="text-slate-700 font-normal">| VoterMitra — राष्ट्रीय मतदाता सत्यापन एवं विसंगति जांच पोर्टल</span>
+                {t.portalSub}
               </div>
               <div className="text-[10px] text-slate-500 hidden sm:block">
-                National Electoral Roll Verification & Anomaly Detection Portal (Under Registration of Electors Rules, 1960)
+                {t.nav.legalNotice}
               </div>
             </div>
           </div>
@@ -156,7 +170,7 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
             <div className="hidden lg:flex flex-col items-end border-r border-slate-300 pr-3 text-right">
               <span className="inline-flex items-center gap-1 rounded bg-emerald-100 text-emerald-900 px-2 py-0.5 text-[11px] font-bold border border-emerald-300">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                सत्यापन सक्रिय · 100% Recall
+                100% Recall Verified
               </span>
               <span className="text-[10px] text-slate-500 mt-0.5">
                 दिल्ली रोल ऑडिट: 15,308 मतदाता
@@ -180,24 +194,36 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
           <div className="flex items-center">
             <Link
               href="/"
-              className="px-3.5 py-2.5 border-b-2 border-amber-400 bg-white/10 text-white font-semibold flex items-center gap-1.5 whitespace-nowrap"
+              className={`px-3.5 py-2.5 flex items-center gap-1.5 whitespace-nowrap transition ${
+                isHome
+                  ? 'border-b-2 border-amber-400 bg-white/10 text-white font-bold'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5'
+              }`}
             >
               <span>🏛️</span>
-              <span>मुख्य पृष्ठ (Claim Checker)</span>
+              <span>{t.nav.home}</span>
             </Link>
             <Link
               href="/dashboard"
-              className="px-3.5 py-2.5 text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center gap-1.5 whitespace-nowrap"
+              className={`px-3.5 py-2.5 flex items-center gap-1.5 whitespace-nowrap transition ${
+                isDashboard
+                  ? 'border-b-2 border-amber-400 bg-white/10 text-white font-bold'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5'
+              }`}
             >
               <span>📊</span>
-              <span>ऑडिट डैशबोर्ड (Audit Console)</span>
+              <span>{t.nav.dashboard}</span>
             </Link>
             <Link
               href="/dashboard/queue"
-              className="px-3.5 py-2.5 text-slate-200 hover:text-white hover:bg-white/5 transition flex items-center gap-1.5 whitespace-nowrap"
+              className={`px-3.5 py-2.5 flex items-center gap-1.5 whitespace-nowrap transition ${
+                isQueue
+                  ? 'border-b-2 border-amber-400 bg-white/10 text-white font-bold'
+                  : 'text-slate-200 hover:text-white hover:bg-white/5'
+              }`}
             >
               <span>📋</span>
-              <span>विसंगति कतार (Review Queue)</span>
+              <span>{t.nav.queue}</span>
             </Link>
           </div>
 
@@ -209,7 +235,7 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
               className="inline-flex items-center gap-1.5 rounded bg-[#FF671F] px-3 py-1 text-xs font-bold text-white shadow-xs hover:bg-[#E65100] transition whitespace-nowrap"
             >
               <span>🤖</span>
-              <span>टेलीग्राम बॉट</span>
+              <span>{t.nav.bot}</span>
               <span className="text-[10px]">↗</span>
             </a>
           </div>

@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react';
-import { maskName } from '@/lib/queries';
+
+export function maskName(name: string): string {
+  if (!name) return '-';
+  return name
+    .split(/\s+/)
+    .map((part) => {
+      if (part.length <= 2) return part[0] + '*';
+      return part[0] + '***' + part[part.length - 1];
+    })
+    .join(' ');
+}
 
 // Keys whose values identify a person. Place names (ac_name, section_name...) stay readable.
 // Adjust to match the keys your detector writes into evidence_payload.
@@ -53,75 +63,38 @@ export function EvidenceViewer({ payload }: { payload: unknown }) {
   );
 }
 
-function BeforeAfter({ before, after }: { before: unknown; after: unknown }) {
-  if (isObj(before) && isObj(after)) {
-    const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
-    return (
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-xs text-slate-500">
-            <th className="py-1 pr-4 font-medium">Field</th>
-            <th className="py-1 pr-4 font-medium">Before (v1)</th>
-            <th className="py-1 font-medium">After (v2)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {keys.map((k) => {
-            const changed = JSON.stringify(before[k]) !== JSON.stringify(after[k]);
-            return (
-              <tr key={k} className={changed ? 'bg-amber-50' : ''}>
-                <td className="py-1 pr-4 text-slate-500">{humanize(k)}</td>
-                <td className="py-1 pr-4">{display(before[k])}</td>
-                <td className={`py-1 ${changed ? 'font-medium text-amber-900' : ''}`}>{display(after[k])}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    );
-  }
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <div>
-        <p className="mb-1 text-xs font-medium text-slate-500">Before (v1)</p>
-        {renderValue(before)}
-      </div>
-      <div>
-        <p className="mb-1 text-xs font-medium text-slate-500">After (v2)</p>
-        {renderValue(after)}
-      </div>
-    </div>
-  );
-}
-
 function ObjectTable({ rows }: { rows: Record<string, unknown>[] }) {
-  const columns = [...new Set(rows.flatMap((r) => Object.keys(r)))].slice(0, 10);
+  if (rows.length === 0) return null;
+  const cols = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));
+  const truncated = rows.length > MAX_ROWS;
+  const slice = rows.slice(0, MAX_ROWS);
+
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-xs text-slate-500">
-            {columns.map((c) => (
-              <th key={c} className="py-1 pr-4 font-medium">
+      <table className="w-full text-left text-xs">
+        <thead className="border-b border-slate-200 text-slate-500">
+          <tr>
+            {cols.map((c) => (
+              <th key={c} className="py-2 pr-4 font-medium">
                 {humanize(c)}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
-          {rows.slice(0, MAX_ROWS).map((row, i) => (
-            <tr key={i} className="border-b border-slate-100">
-              {columns.map((c) => (
-                <td key={c} className="py-1 pr-4">
-                  {display(row[c])}
+        <tbody className="divide-y divide-slate-100 font-mono text-slate-700">
+          {slice.map((r, i) => (
+            <tr key={i} className="hover:bg-slate-50">
+              {cols.map((c) => (
+                <td key={c} className="py-1.5 pr-4">
+                  {display(r[c])}
                 </td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
-      {rows.length > MAX_ROWS && (
-        <p className="mt-2 text-xs text-slate-500">
+      {truncated && (
+        <p className="mt-2 text-xs text-slate-400">
           Showing {MAX_ROWS} of {rows.length} rows.
         </p>
       )}
@@ -131,13 +104,28 @@ function ObjectTable({ rows }: { rows: Record<string, unknown>[] }) {
 
 function KeyValues({ obj }: { obj: Record<string, unknown> }) {
   return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+    <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
       {Object.entries(obj).map(([k, v]) => (
-        <div key={k} className="contents">
-          <dt className="text-slate-500">{humanize(k)}</dt>
-          <dd>{display(v)}</dd>
+        <div key={k} className="rounded border border-slate-100 p-2">
+          <dt className="text-slate-400">{humanize(k)}</dt>
+          <dd className="font-mono text-slate-700">{display(v)}</dd>
         </div>
       ))}
     </dl>
+  );
+}
+
+function BeforeAfter({ before, after }: { before: unknown; after: unknown }) {
+  return (
+    <div className="grid gap-3 text-xs sm:grid-cols-2">
+      <div className="rounded border border-rose-100 bg-rose-50/40 p-3">
+        <p className="mb-1 font-semibold text-rose-800">Before (Baseline)</p>
+        <div className="font-mono text-slate-700">{renderValue(before)}</div>
+      </div>
+      <div className="rounded border border-emerald-100 bg-emerald-50/40 p-3">
+        <p className="mb-1 font-semibold text-emerald-800">After (Revised)</p>
+        <div className="font-mono text-slate-700">{renderValue(after)}</div>
+      </div>
+    </div>
   );
 }

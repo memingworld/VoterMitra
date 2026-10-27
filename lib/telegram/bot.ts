@@ -1,11 +1,31 @@
 import 'server-only';
-import { Bot, InputFile } from 'grammy';
+import { Bot, InputFile, InlineKeyboard } from 'grammy';
 import { env } from '../env';
 import { answerQuestion } from '../assistant';
-import { fromTelegramCode, strings } from './i18n';
+import { fromTelegramCode, strings, type BotLanguage } from './i18n';
 import { transcribe, synthesize } from '../gnani';
+import { VOICE_MAP, SUPPORTED_LANGUAGES, type LanguageCode } from '../languages';
 
 let botInstance: Bot | null = null;
+const userLanguageMap = new Map<number, BotLanguage>();
+
+function getLanguageKeyboard() {
+  return new InlineKeyboard()
+    .text('🇮🇳 हिन्दी', 'lang:hi-IN')
+    .text('🇬🇧 English', 'lang:en-IN')
+    .row()
+    .text('🇮🇳 मराठी', 'lang:mr-IN')
+    .text('🇮🇳 বাংলা', 'lang:bn-IN')
+    .row()
+    .text('🇮🇳 தமிழ்', 'lang:ta-IN')
+    .text('🇮🇳 తెలుగు', 'lang:te-IN')
+    .row()
+    .text('🇮🇳 ગુજરાતી', 'lang:gu-IN')
+    .text('🇮🇳 ಕನ್ನಡ', 'lang:kn-IN')
+    .row()
+    .text('🇮🇳 മലയാളം', 'lang:ml-IN')
+    .text('🇮🇳 ਪੰਜਾਬੀ', 'lang:pa-IN');
+}
 
 export function getTelegramBot(): Bot | null {
   const token = env().TELEGRAM_BOT_TOKEN;
@@ -17,13 +37,71 @@ export function getTelegramBot(): Bot | null {
 
   // Command /start
   bot.command('start', async (ctx) => {
-    const lang = fromTelegramCode(ctx.from?.language_code);
     const welcome =
-      lang === 'hi-IN'
-        ? `🇮🇳 **भारत निर्वाचन आयोग — मतदाता मित्र (VoterMitra)**\n\nनमस्कार! मैं **VoterMitra** हूँ। आप मुझसे मतदाता सूची (Electoral Roll), विलोपन (Deletions), या किसी भी वायरल दावे के बारे में पूछ सकते हैं!\n\nउदा: *"क्या पार्ट 4 में 49 महिलाओं के नाम कटे?"*\n\nमैं आपको आधिकारिक आंकड़ों और **ऑडियो वॉइस संदेश** के साथ उत्तर दूंगा!`
-        : `🇮🇳 **ELECTION COMMISSION OF INDIA — VoterMitra**\n\nWelcome! I am **VoterMitra**, an explainable electoral roll verification assistant.\n\nAsk any question or viral claim regarding draft revisions, voter deletions, or address overcrowding.\n\ne.g.: *"Were 49 women deleted in Part 4?"*\n\nI will answer with official audit statistics and voice responses!`;
+      `🇮🇳 *भारत निर्वाचन आयोग | ELECTION COMMISSION OF INDIA*\n` +
+      `*मतदाता मित्र (VoterMitra) — Electoral Roll Verification Bot*\n\n` +
+      `नमस्कार ${ctx.from?.first_name || ''}! मैं **VoterMitra** हूँ — निर्वाचन नामावली सत्यापन एवं विसंगति जांच बॉट।\n\n` +
+      `🌐 *कृपया अपनी पसंदीदा भाषा चुनें / Please choose your language:*`;
 
-    await ctx.reply(welcome, { parse_mode: 'Markdown' });
+    await ctx.reply(welcome, {
+      parse_mode: 'Markdown',
+      reply_markup: getLanguageKeyboard(),
+    });
+  });
+
+  // Command /language
+  bot.command(['language', 'lang'], async (ctx) => {
+    await ctx.reply(
+      `🌐 *भाषा चयन (Choose Language)*\n\nनीचे दिए गए बटनों में से अपनी भाषा चुनें:`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: getLanguageKeyboard(),
+      }
+    );
+  });
+
+  // Callback query for language selection
+  bot.callbackQuery(/^lang:(.+)$/, async (ctx) => {
+    const chosenLang = ctx.match[1] as BotLanguage;
+    const userId = ctx.from?.id;
+
+    if (userId) {
+      userLanguageMap.set(userId, chosenLang);
+    }
+
+    const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === chosenLang);
+    const voiceName = VOICE_MAP[chosenLang as LanguageCode] || 'Nalini';
+
+    await ctx.answerCallbackQuery({
+      text: `✓ Language set to ${langObj?.englishName || chosenLang}`,
+    });
+
+    const confirmText =
+      `✅ *भाषा सफलतापूर्वक चुनी गई: ${langObj?.label} (${langObj?.englishName})*\n` +
+      `🎙️ *Gnani AI Voice:* ${voiceName} (timbre-v2.5)\n\n` +
+      `अब आप सीधे सवाल पूछ सकते हैं:\n` +
+      `📌 उदा: *"क्या पार्ट 4 में 49 महिलाओं के नाम कटे?"*\n` +
+      `📌 उदा: *"Plot 12-B में कितने वोटर हैं?"*\n\n` +
+      `मैं आपको प्रमाणित आंकड़ों और **ऑडियो वॉइस संदेश** में जवाब दूंगा!`;
+
+    await ctx.reply(confirmText, { parse_mode: 'Markdown' });
+
+    // Send a welcome voice greeting
+    try {
+      const greeting = `Welcome to VoterMitra. Language selected: ${langObj?.englishName || chosenLang}.`;
+      const ttsResult = await synthesize(greeting, {
+        language: chosenLang,
+        voice: voiceName,
+        format: 'ogg',
+      });
+      if (ttsResult?.audio) {
+        await ctx.replyWithVoice(new InputFile(ttsResult.audio, `welcome_${chosenLang}.ogg`), {
+          caption: `🎙️ ${langObj?.label} Voice Note (${voiceName} · Gnani AI)`,
+        });
+      }
+    } catch {
+      // Non-fatal
+    }
   });
 
   // Text message handler
@@ -31,9 +109,10 @@ export function getTelegramBot(): Bot | null {
     const text = ctx.message.text.trim();
     if (text.startsWith('/')) return;
 
-    const lang = fromTelegramCode(ctx.from?.language_code);
     const userId = ctx.from?.id;
-    const s = strings[lang];
+    const lang = (userId && userLanguageMap.get(userId)) || fromTelegramCode(ctx.from?.language_code);
+    const voiceName = VOICE_MAP[lang as LanguageCode] || 'Nalini';
+    const s = strings[lang] || strings['hi-IN'];
 
     try {
       await ctx.replyWithChatAction('typing');
@@ -44,7 +123,7 @@ export function getTelegramBot(): Bot | null {
 
       const verdictStr = answer.verdict ? s.verdicts[answer.verdict] : 'Information';
       const confStr = answer.confidence ? s.confidenceLevels[answer.confidence] : '—';
-      const baseUrl = env().PUBLIC_BASE_URL || 'https://votermitra-hack.vercel.app';
+      const baseUrl = env().PUBLIC_BASE_URL || 'https://voter-mitra-hack.vercel.app';
       const shareUrl = answer.auditId ? `\n\n🔗 *आधिकारिक सत्यापन पोर्टल:* ${baseUrl}/c/${answer.auditId}` : '';
 
       const replyText =
@@ -53,7 +132,8 @@ export function getTelegramBot(): Bot | null {
         `${answer.summary}\n\n` +
         `*${s.basis}:*\n` +
         answer.reasoning.map((r) => `• ${r}`).join('\n') +
-        shareUrl;
+        shareUrl +
+        `\n\n🌐 _भाषा बदलने हेतु /language भेजें_`;
 
       // Also synthesize Gnani AI Voice response
       let ttsBuffer: Buffer | null = null;
@@ -61,6 +141,7 @@ export function getTelegramBot(): Bot | null {
         const spokenText = `${answer.spokenSummary}. ${answer.reasoning.slice(0, 2).join('. ')}`;
         const ttsResult = await synthesize(spokenText, {
           language: lang,
+          voice: voiceName,
           format: 'ogg',
         });
         ttsBuffer = ttsResult.audio;
@@ -71,8 +152,8 @@ export function getTelegramBot(): Bot | null {
       await ctx.reply(replyText, { parse_mode: 'Markdown' });
 
       if (ttsBuffer) {
-        await ctx.replyWithVoice(new InputFile(ttsBuffer, 'response.ogg'), {
-          caption: `🎙️ आधिकारिक Gnani AI स्वर प्रतिक्रिया (${lang})`,
+        await ctx.replyWithVoice(new InputFile(ttsBuffer, `response_${lang}.ogg`), {
+          caption: `🎙️ आधिकारिक Gnani AI स्वर प्रतिक्रिया (${voiceName} · ${lang})`,
         });
       }
     } catch (err) {
@@ -83,9 +164,9 @@ export function getTelegramBot(): Bot | null {
 
   // Voice message handler
   bot.on('message:voice', async (ctx) => {
-    const lang = fromTelegramCode(ctx.from?.language_code);
     const userId = ctx.from?.id;
-    const s = strings[lang];
+    const lang = (userId && userLanguageMap.get(userId)) || fromTelegramCode(ctx.from?.language_code);
+    const s = strings[lang] || strings['hi-IN'];
 
     try {
       await ctx.replyWithChatAction('record_voice');
@@ -125,6 +206,7 @@ export function getTelegramBot(): Bot | null {
       try {
         const ttsResult = await synthesize(spokenText, {
           language: lang,
+          voice: VOICE_MAP[lang as LanguageCode] || 'Nalini',
           format: 'ogg',
         });
         ttsBuffer = ttsResult.audio;
@@ -133,7 +215,7 @@ export function getTelegramBot(): Bot | null {
       }
 
       const verdictStr = answer.verdict ? s.verdicts[answer.verdict] : 'Information';
-      const baseUrl = env().PUBLIC_BASE_URL || 'https://votermitra-hack.vercel.app';
+      const baseUrl = env().PUBLIC_BASE_URL || 'https://voter-mitra-hack.vercel.app';
       const shareUrl = answer.auditId ? `\n🔗 ${baseUrl}/c/${answer.auditId}` : '';
 
       const caption =

@@ -1,19 +1,17 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { GovHeader } from '@/components/gov-header';
 import { ClaimChecker } from '@/components/claim-checker';
-import { I18N_DICTIONARY, type LanguageCode } from '@/lib/languages';
+import { useLanguage } from '@/components/language-context';
 
 export default function HomePage() {
-  const [lang, setLang] = useState<LanguageCode>('hi-IN');
-  const t = I18N_DICTIONARY[lang] || I18N_DICTIONARY['hi-IN'];
+  const { lang, setLang, t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-900 flex flex-col font-sans">
       {/* 1. Official National Government & ECI Header */}
-      <GovHeader currentLang={lang} onLanguageChange={setLang} />
+      <GovHeader />
 
       {/* 2. Official Government Notice Marquee / Flash News Strip */}
       <div className="bg-[#FFF8E7] border-b border-[#F2DCA8] px-4 py-2 text-xs text-[#8A4B08] font-medium flex items-center justify-between shadow-xs">
@@ -71,7 +69,7 @@ export default function HomePage() {
 
       {/* 4. Main Body: Citizen Claim Verification Portal */}
       <main className="flex-1 mx-auto max-w-4xl w-full px-4 py-8">
-        <ClaimChecker currentLang={lang} onLanguageChange={setLang} />
+        <ClaimChecker />
 
         {/* Feature Hub for Officer Console & Review Queue */}
         <div className="mt-12 grid gap-5 sm:grid-cols-3 border-t border-slate-300 pt-8">
