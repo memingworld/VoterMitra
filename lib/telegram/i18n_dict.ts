@@ -62,6 +62,8 @@ export interface TelegramLangDict {
     };
   };
   voiceReceived: string;
+  youAsked: string;
+  voiceInaudible: string;
   actionPrompts: {
     verify: string;
     lang: string;

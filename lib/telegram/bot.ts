@@ -2,6 +2,7 @@ import 'server-only';
 import { Bot, InputFile, InlineKeyboard } from 'grammy';
 import { env } from '../env';
 import { answerQuestion } from '../assistant';
+import { askGeminiAudio } from '../gemini';
 import { fromTelegramCode, type BotLanguage } from './i18n';
 import { getLanguageDict, type TelegramLangDict } from './i18n_dict';
 import { transcribe, synthesize } from '../gnani';
@@ -274,33 +275,35 @@ export function getTelegramBot(): Bot | null {
     }
   });
 
-  // Voice message handler
-  bot.on('message:voice', async (ctx) => {
+  // Voice & Audio Message Handler (Gemini Multimodal Audio + Gnani AI Regional Voice Synthesis)
+  bot.on(['message:voice', 'message:audio'], async (ctx) => {
     const userId = ctx.from?.id;
     const lang = getUserLang(userId, ctx.from?.language_code);
     const dict = getLanguageDict(lang);
+    const voiceName = VOICE_MAP[lang] || 'Nalini';
 
     try {
       await ctx.replyWithChatAction('record_voice');
       const file = await ctx.getFile();
+      if (!file?.file_path) {
+        await ctx.reply(dict.voiceInaudible, { parse_mode: 'Markdown' });
+        return;
+      }
+
       const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
-
       const res = await fetch(fileUrl);
-      if (!res.ok) throw new Error('Failed to download voice file from Telegram');
+      if (!res.ok) throw new Error(`Failed to download voice file from Telegram: ${res.status}`);
+
       const arrayBuffer = await res.arrayBuffer();
-      const audioBuffer = Buffer.from(arrayBuffer);
+      const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+      const mimeType = ctx.message.voice ? 'audio/ogg' : (ctx.message.audio?.mime_type || 'audio/ogg');
 
-      // Attempt Gnani STT
-      const sttResult = await transcribe(audioBuffer, {
-        language: lang,
-        mimeType: 'audio/ogg',
-        filename: 'voice.ogg',
-      });
+      // 1. Process voice directly with Gemini 2.5 Flash Multimodal Audio
+      const geminiResult = await askGeminiAudio(base64Audio, mimeType, lang);
 
-      const questionText = sttResult.transcript.trim();
-
-      if (!questionText) {
-        await ctx.reply(dict.voiceReceived, { parse_mode: 'Markdown' });
+      const questionText = geminiResult?.transcription?.trim();
+      if (!questionText || geminiResult?.verdict === 'NOT_PROVABLE' && !geminiResult?.summary) {
+        await ctx.reply(dict.voiceInaudible, { parse_mode: 'Markdown' });
         return;
       }
 
@@ -315,7 +318,7 @@ export function getTelegramBot(): Bot | null {
       try {
         const ttsResult = await synthesize(spokenText, {
           language: lang,
-          voice: VOICE_MAP[lang] || 'Nalini',
+          voice: voiceName,
           format: 'ogg',
         });
         ttsBuffer = ttsResult.audio;
@@ -326,25 +329,35 @@ export function getTelegramBot(): Bot | null {
       const verdictStr =
         dict.queryLabels.verdicts[answer.verdict as keyof typeof dict.queryLabels.verdicts] ||
         dict.queryLabels.verdicts.GUIDANCE;
+      const confStr =
+        answer.confidence === 'MEDIUM' ? dict.queryLabels.confidence.MEDIUM : dict.queryLabels.confidence.HIGH;
       const baseUrl = env().PUBLIC_BASE_URL || 'https://voter-mitra-hack.vercel.app';
-      const shareUrl = answer.auditId ? `\n🔗 ${baseUrl}/c/${answer.auditId}` : '';
+      const shareUrl = answer.auditId ? `\n\n🔗 *${dict.queryLabels.portalLink}* ${baseUrl}/c/${answer.auditId}` : '';
+      const bcProof = answer.blockchain
+        ? `\n\n⛓️ *${dict.queryLabels.blockchainSeal}* \`${answer.blockchain.electorOrQueryHash.slice(0, 16)}...\` · Block #${answer.blockchain.blockNumber}`
+        : '';
 
-      const caption =
-        `🗣️ *${dict.englishName}:* "${questionText}"\n` +
+      const replyText =
+        `🗣️ *${dict.youAsked}:* "${questionText}"\n\n` +
         `🔍 *${verdictStr}*\n` +
-        `${answer.summary}${shareUrl}`;
+        `📊 *${confStr}*\n\n` +
+        `${answer.summary}\n\n` +
+        `*${dict.queryLabels.evidenceHeader}*\n` +
+        answer.reasoning.map((r) => `• ${r}`).join('\n') +
+        bcProof +
+        shareUrl +
+        `\n\n🌐 _${dict.queryLabels.footerHint}_`;
+
+      await ctx.reply(replyText, { parse_mode: 'Markdown' });
 
       if (ttsBuffer) {
-        await ctx.replyWithVoice(new InputFile(ttsBuffer, 'verdict.ogg'), {
-          caption,
-          parse_mode: 'Markdown',
+        await ctx.replyWithVoice(new InputFile(ttsBuffer, `voice_${lang}.ogg`), {
+          caption: `🎙️ ${dict.name} (${voiceName} · Gnani AI)`,
         });
-      } else {
-        await ctx.reply(caption, { parse_mode: 'Markdown' });
       }
     } catch (err) {
       console.error('[telegram] voice handler error:', err);
-      await ctx.reply(dict.voiceReceived, { parse_mode: 'Markdown' });
+      await ctx.reply(dict.voiceInaudible, { parse_mode: 'Markdown' });
     }
   });
 

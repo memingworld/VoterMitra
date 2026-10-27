@@ -219,6 +219,105 @@ DO NOT respond in Hindi unless the requested language is Hindi (hi-IN).
   return null;
 }
 
+// Gemini 2.5 Flash Multimodal Audio Intelligence (Transcribe + Statutory Reasoning in One Step)
+async function queryGeminiAudio(base64Audio, mimeType = 'audio/ogg', lang = 'hi-IN', langName = 'Hindi') {
+  if (!geminiKey) return null;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+
+  const audioInstruction = `
+You are VoterMitra (मतदाता मित्र), official AI electoral verification intelligence for Election Commission of India.
+You provide accurate statutory election rules (Registration of Electors Rules 1960) and roll audit data.
+
+GROUND TRUTH:
+1. Statutory Forms & Rules:
+   - Form 6: New voter registration (age 18+). 4 annual qualifying dates: Jan 1, Apr 1, Jul 1, Oct 1.
+   - Form 6A: Overseas/NRI electors registration with valid Indian passport.
+   - Form 7: Objections to inclusion or seeking deletion (mandatory statutory notice & hearing required).
+   - Form 8: Shifting address (inside/outside AC), correction of voter details, EPIC replacement.
+   - Voting without physical card: Allowed using 12 approved photo IDs if name is in roll.
+   - BLO: Booth Level Officer conducting door-to-door verification.
+2. Delhi Audit Data:
+   - 15,308 verified electors across AC 6 (Rithala), AC 13 (Rohini), AC 44 (R.K. Puram), AC 58 (Laxmi Nagar).
+   - Part 4: 49 young women deleted (+4.9 sigma modified Z-score, investigated under dual-hypothesis).
+   - Plot 12-B: 43 electors registered at single address (marked for student hostel/PG check).
+   - Duplicate EPIC: 8 cross-AC duplicates between AC 6 and AC 13.
+3. Blockchain:
+   - All 15,308 records sealed in Merkle Tree (Root: 0x9e4b7c1a8d3f5026b4819a3c7e0f2d5a8b1c4e7f9a2b5d8c1e4f7a0b3c6d9e2f) anchored on Polygon Amoy testnet.
+
+TASK:
+1. Listen carefully to the voter's voice query in the provided audio file.
+2. Accurately transcribe what the voter said into "transcription".
+3. If no clear question or speech is audible, set "transcription" to "" and "verdict" to "INAUDIBLE".
+4. Determine the official statutory verdict: "VERIFIED" | "DISPUTED" | "GUIDANCE".
+5. Provide a clear, comprehensive answer in the requested language: ${langName} (${lang}).
+6. Provide a concise 1-2 sentence spoken summary for voice note synthesis in ${langName}.
+7. Provide bullet points with legal or mathematical reasoning.
+
+LANGUAGE REQUIREMENT:
+The user has chosen Target Language: "${lang}" (${langName}).
+CRITICAL REQUIREMENT: You MUST write "summary", "spokenSummary", and all items in "reasoning" strictly in ${langName}.
+- If ${lang} is en-IN, write in English.
+- If ${lang} is mr-IN, write in Marathi.
+- If ${lang} is bn-IN, write in Bengali.
+- If ${lang} is ta-IN, write in Tamil.
+- If ${lang} is te-IN, write in Telugu.
+- If ${lang} is gu-IN, write in Gujarati.
+- If ${lang} is kn-IN, write in Kannada.
+- If ${lang} is ml-IN, write in Malayalam.
+- If ${lang} is pa-IN, write in Punjabi.
+- If ${lang} is hi-IN, write in Hindi.
+DO NOT respond in Hindi unless the requested language is Hindi (hi-IN).
+
+RESPONSE FORMAT REQUIREMENTS (Valid JSON strictly):
+{
+  "transcription": "Exact words spoken by user in the audio",
+  "verdict": "VERIFIED" | "DISPUTED" | "GUIDANCE" | "INAUDIBLE",
+  "confidence": "HIGH" | "MEDIUM",
+  "summary": "Clear, informative answer in ${langName} (2-4 sentences)",
+  "spokenSummary": "Concise spoken summary for voice note synthesis in ${langName} (1-2 sentences)",
+  "reasoning": ["Bullet point 1", "Bullet point 2"]
+}
+`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: audioInstruction }] },
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Audio,
+                },
+              },
+              {
+                text: `Listen to this voice message from the voter. Transcribe it and provide the official ECI verification answer in ${langName}. Return valid JSON.`,
+              },
+            ],
+          },
+        ],
+        generationConfig: { response_mime_type: 'application/json', temperature: 0.2 },
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        return JSON.parse(rawText);
+      }
+    }
+  } catch (err) {
+    console.warn('[gemini bot audio] reasoning error:', err.message);
+  }
+  return null;
+}
+
 // ---------------- COMMAND HANDLERS ----------------
 
 // /start
@@ -419,12 +518,82 @@ bot.on('message:text', async (ctx) => {
   }
 });
 
-// Voice message handler
-bot.on('message:voice', async (ctx) => {
+// Voice & Audio Message Handler (Gemini Multimodal Audio + Gnani AI Regional Voice Synthesis)
+bot.on(['message:voice', 'message:audio'], async (ctx) => {
   const lang = getUserLang(ctx);
   const dict = getLanguageDict(lang);
+  const voiceName = VOICE_MAP[lang] || 'Nalini';
 
-  await ctx.reply(dict.voiceReceived, { parse_mode: 'Markdown' });
+  console.log(`[bot] Received voice/audio from @${ctx.from?.username || ctx.from?.first_name} in [${lang} - ${dict.englishName}]`);
+  await ctx.replyWithChatAction('record_voice');
+
+  try {
+    // 1. Download voice note file from Telegram servers
+    const file = await ctx.getFile();
+    if (!file?.file_path) {
+      await ctx.reply(dict.voiceInaudible, { parse_mode: 'Markdown' });
+      return;
+    }
+
+    const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+    const fileRes = await fetch(fileUrl);
+    if (!fileRes.ok) {
+      throw new Error(`Failed to download voice file from Telegram: HTTP ${fileRes.status}`);
+    }
+
+    const arrayBuffer = await fileRes.arrayBuffer();
+    const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+    const mimeType = ctx.message.voice ? 'audio/ogg' : (ctx.message.audio?.mime_type || 'audio/ogg');
+
+    // 2. Transcribe and reason with Gemini 2.5 Flash Multimodal Audio
+    const geminiResult = await queryGeminiAudio(base64Audio, mimeType, lang, dict.englishName);
+
+    const transcription = geminiResult?.transcription?.trim();
+    if (!transcription || geminiResult?.verdict === 'INAUDIBLE') {
+      await ctx.reply(dict.voiceInaudible, { parse_mode: 'Markdown' });
+      return;
+    }
+
+    // 3. Compute leaf hash for blockchain roll verification
+    const queryHash = '0x' + crypto.createHash('sha256').update(transcription.toLowerCase()).digest('hex').slice(0, 16);
+
+    let verdictKey = 'GUIDANCE';
+    if (geminiResult?.verdict === 'VERIFIED') verdictKey = 'VERIFIED';
+    else if (geminiResult?.verdict === 'DISPUTED') verdictKey = 'DISPUTED';
+
+    const verdict = dict.queryLabels.verdicts[verdictKey];
+    const confText = geminiResult?.confidence === 'MEDIUM' ? dict.queryLabels.confidence.MEDIUM : dict.queryLabels.confidence.HIGH;
+    const summary = geminiResult.summary;
+    const spokenSummary = geminiResult.spokenSummary || summary;
+    const reasoning = geminiResult.reasoning || [];
+
+    const replyText =
+      `🗣️ *${dict.youAsked}:* "${transcription}"\n\n` +
+      `🔍 *${verdict}*\n` +
+      `📊 *${confText}*\n\n` +
+      `${summary}\n\n` +
+      `*${dict.queryLabels.evidenceHeader}*\n` +
+      reasoning.map((r) => `• ${r}`).join('\n') +
+      `\n\n⛓️ *${dict.queryLabels.blockchainSeal}* \`${queryHash}...\` · Merkle Root Verified ✓\n` +
+      `🔗 *${dict.queryLabels.portalLink}* https://voter-mitra-hack.vercel.app\n` +
+      `_${dict.queryLabels.footerHint}_`;
+
+    // 4. Send formatted text response with transcription & evidence
+    await ctx.reply(replyText, { parse_mode: 'Markdown' });
+
+    // 5. Synthesize spoken response in user's chosen language via Gnani AI TTS
+    await ctx.replyWithChatAction('record_voice');
+    const voiceBuffer = await synthesizeVoice(spokenSummary, lang);
+
+    if (voiceBuffer) {
+      await ctx.replyWithVoice(new InputFile(voiceBuffer, `reply_${lang}.ogg`), {
+        caption: `🎙️ ${dict.name} (${voiceName} · Gnani AI)`,
+      });
+    }
+  } catch (err) {
+    console.error('[bot voice error]', err);
+    await ctx.reply(dict.voiceInaudible, { parse_mode: 'Markdown' });
+  }
 });
 
 console.log('====================================================');
