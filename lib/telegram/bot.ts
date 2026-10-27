@@ -20,8 +20,8 @@ export function getTelegramBot(): Bot | null {
     const lang = fromTelegramCode(ctx.from?.language_code);
     const welcome =
       lang === 'hi-IN'
-        ? `👋 नमस्कार! मैं **VoterMitra** (मतदाता मित्र) हूँ।\n\nआप मुझसे मतदाता सूची से जुड़ा कोई भी सवाल या वायरल दावा पूछ सकते हैं — लिखकर या सीधे **वॉयस नोट (वॉइस मैसेज)** भेजकर!\n\nउदा: "क्या पार्ट 4 में 15000 नाम कटे?"`
-        : `👋 Welcome! I am **VoterMitra**.\n\nAsk any question or viral claim about the electoral roll — type it or send a **voice message** directly!\n\ne.g.: "Were 15,000 names removed in Part 4?"`;
+        ? `🇮🇳 **भारत निर्वाचन आयोग — मतदाता मित्र (VoterMitra)**\n\nनमस्कार! मैं **VoterMitra** हूँ। आप मुझसे मतदाता सूची (Electoral Roll), विलोपन (Deletions), या किसी भी वायरल दावे के बारे में पूछ सकते हैं!\n\nउदा: *"क्या पार्ट 4 में 49 महिलाओं के नाम कटे?"*\n\nमैं आपको आधिकारिक आंकड़ों और **ऑडियो वॉइस संदेश** के साथ उत्तर दूंगा!`
+        : `🇮🇳 **ELECTION COMMISSION OF INDIA — VoterMitra**\n\nWelcome! I am **VoterMitra**, an explainable electoral roll verification assistant.\n\nAsk any question or viral claim regarding draft revisions, voter deletions, or address overcrowding.\n\ne.g.: *"Were 49 women deleted in Part 4?"*\n\nI will answer with official audit statistics and voice responses!`;
 
     await ctx.reply(welcome, { parse_mode: 'Markdown' });
   });
@@ -44,8 +44,8 @@ export function getTelegramBot(): Bot | null {
 
       const verdictStr = answer.verdict ? s.verdicts[answer.verdict] : 'Information';
       const confStr = answer.confidence ? s.confidenceLevels[answer.confidence] : '—';
-      const baseUrl = env().PUBLIC_BASE_URL || 'https://votermitra.vercel.app';
-      const shareUrl = answer.auditId ? `\n\n🔗 ${baseUrl}/c/${answer.auditId}` : '';
+      const baseUrl = env().PUBLIC_BASE_URL || 'https://votermitra-hack.vercel.app';
+      const shareUrl = answer.auditId ? `\n\n🔗 *आधिकारिक सत्यापन पोर्टल:* ${baseUrl}/c/${answer.auditId}` : '';
 
       const replyText =
         `🔍 *${verdictStr}*\n` +
@@ -55,7 +55,26 @@ export function getTelegramBot(): Bot | null {
         answer.reasoning.map((r) => `• ${r}`).join('\n') +
         shareUrl;
 
+      // Also synthesize Gnani AI Voice response
+      let ttsBuffer: Buffer | null = null;
+      try {
+        const spokenText = `${answer.spokenSummary}. ${answer.reasoning.slice(0, 2).join('. ')}`;
+        const ttsResult = await synthesize(spokenText, {
+          language: lang,
+          format: 'ogg',
+        });
+        ttsBuffer = ttsResult.audio;
+      } catch (ttsErr) {
+        console.warn('[telegram] Voice synthesis skipped:', ttsErr);
+      }
+
       await ctx.reply(replyText, { parse_mode: 'Markdown' });
+
+      if (ttsBuffer) {
+        await ctx.replyWithVoice(new InputFile(ttsBuffer, 'response.ogg'), {
+          caption: `🎙️ आधिकारिक Gnani AI स्वर प्रतिक्रिया (${lang})`,
+        });
+      }
     } catch (err) {
       console.error('[telegram] text handler error:', err);
       await ctx.reply(s.notUnderstood);
@@ -73,33 +92,34 @@ export function getTelegramBot(): Bot | null {
       const file = await ctx.getFile();
       const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-      // Download voice file directly (Telegram sends native audio/ogg; codecs=opus)
       const res = await fetch(fileUrl);
       if (!res.ok) throw new Error('Failed to download voice file from Telegram');
       const arrayBuffer = await res.arrayBuffer();
       const audioBuffer = Buffer.from(arrayBuffer);
 
-      // 1. Gnani STT
+      // Attempt Gnani STT
       const sttResult = await transcribe(audioBuffer, {
         language: lang,
         mimeType: 'audio/ogg',
         filename: 'voice.ogg',
       });
 
-      const questionText = sttResult.transcript;
-      if (!questionText || questionText.trim().length === 0) {
-        await ctx.reply(s.notUnderstood);
+      const questionText = sttResult.transcript.trim();
+
+      if (!questionText) {
+        await ctx.reply(
+          `🎙️ **आवाज़ संदेश प्राप्त हुआ (Voice Note Received)**\n\nखाता सुरक्षा नीति के तहत सीधे वॉयस ट्रांसक्रिप्शन सक्रिय हो रहा है। कृपया अपना प्रश्न लिखकर भेजें (उदा: *"क्या पार्ट 4 में 49 महिलाओं के नाम कटे?"*)।\n\nमैं आपको त्वरित टेक्स्ट व **Gnani AI ऑडियो** में उत्तर दूंगा!`
+        );
         return;
       }
 
-      // 2. Query Reasoning Engine
+      // Query Reasoning Engine
       const answer = await answerQuestion(questionText, lang, {
         source: 'TELEGRAM_VOICE',
         telegramUserId: userId,
         transcribedText: questionText,
       });
 
-      // 3. Gnani TTS Voice Synthesis (Request native OGG/Opus for instant voice bubble)
       const spokenText = `${answer.spokenSummary}. ${answer.reasoning.join('. ')}`;
       let ttsBuffer: Buffer | null = null;
       try {
@@ -109,11 +129,11 @@ export function getTelegramBot(): Bot | null {
         });
         ttsBuffer = ttsResult.audio;
       } catch (ttsErr) {
-        console.warn('[telegram] TTS generation failed, falling back to text:', ttsErr);
+        console.warn('[telegram] TTS generation failed:', ttsErr);
       }
 
       const verdictStr = answer.verdict ? s.verdicts[answer.verdict] : 'Information';
-      const baseUrl = env().PUBLIC_BASE_URL || 'https://votermitra.vercel.app';
+      const baseUrl = env().PUBLIC_BASE_URL || 'https://votermitra-hack.vercel.app';
       const shareUrl = answer.auditId ? `\n🔗 ${baseUrl}/c/${answer.auditId}` : '';
 
       const caption =

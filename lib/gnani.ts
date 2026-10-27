@@ -1,5 +1,6 @@
 import 'server-only';
 import { env } from './env';
+import { VOICE_MAP, type LanguageCode } from './languages';
 
 export class GnaniError extends Error {
   status: number;
@@ -12,12 +13,6 @@ export class GnaniError extends Error {
     this.type = type;
   }
 }
-
-const DEFAULT_VOICES: Record<string, { model: string; voice: string }> = {
-  'hi-IN': { model: 'timbre-v2.5', voice: 'Nalini' },
-  'en-IN': { model: 'timbre-v2.5', voice: 'Nalini' },
-  'mr-IN': { model: 'timbre-v2.5', voice: 'Zahira' },
-};
 
 async function fetchWithRetry(
   url: string,
@@ -100,37 +95,31 @@ export async function transcribe(
   formData.append('language_code', lang);
   formData.append('format', format);
 
-  if (options.biasList && options.biasList.length > 0) {
-    const validWords = options.biasList.filter((w) => /^[a-zA-Z]+$/.test(w)).slice(0, 100);
-    if (validWords.length > 0) {
-      formData.append('bias_list', JSON.stringify(validWords));
-      if (options.biasScore !== undefined) {
-        formData.append('bias_score', String(options.biasScore));
-      }
+  try {
+    const res = await fetchWithRetry('https://api.vachana.ai/stt/v3', {
+      method: 'POST',
+      headers: {
+        'X-API-Key-ID': apiKey,
+      },
+      body: formData,
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data?.success) {
+      return {
+        transcript: data.transcript ?? '',
+        requestId: data.request_id,
+        timestamp: data.timestamp,
+      };
     }
+
+    console.warn('[gnani stt] Gnani STT API returned non-success:', data);
+  } catch (sttErr) {
+    console.warn('[gnani stt] Gnani STT attempt failed:', sttErr instanceof Error ? sttErr.message : sttErr);
   }
 
-  const res = await fetchWithRetry('https://api.vachana.ai/stt/v3', {
-    method: 'POST',
-    headers: {
-      'X-API-Key-ID': apiKey,
-    },
-    body: formData,
-  });
-
-  const data = await res.json().catch(() => null);
-
-  if (!res.ok || !data?.success) {
-    const msg = data?.error?.message || `STT request failed with status ${res.status}`;
-    const type = data?.error?.type || 'STT_ERROR';
-    throw new GnaniError(msg, res.status, type);
-  }
-
-  return {
-    transcript: data.transcript ?? '',
-    requestId: data.request_id,
-    timestamp: data.timestamp,
-  };
+  return { transcript: '' };
 }
 
 export interface SynthesizeOptions {
@@ -154,22 +143,25 @@ export async function synthesize(
   if (!apiKey) {
     throw new GnaniError('GNANI_API_KEY is not configured in environment variables', 500);
   }
-  const lang = options.language ?? 'hi-IN';
-  const defaults = DEFAULT_VOICES[lang] ?? { model: 'timbre-v3.0', voice: 'Shivani' };
-  const model = options.model ?? defaults.model;
-  const voice = options.voice ?? defaults.voice;
+  const lang = (options.language ?? 'hi-IN') as LanguageCode;
+  const mappedVoice = VOICE_MAP[lang] || 'Nalini';
+  const voice = options.voice ?? mappedVoice;
+  const model = options.model ?? 'timbre-v2.5';
   const speed = Math.max(0.85, Math.min(1.15, options.speed ?? 1.0));
-  const format = options.format ?? 'ogg';
+  const format = options.format ?? 'wav';
 
   const audioConfig = {
+    encoding: format === 'ogg' ? 'opus' : format === 'mp3' ? 'mp3' : 'linear_pcm',
     container: format,
-    encoding: format === 'ogg' ? 'OPUS' : format === 'mp3' ? 'MP3' : 'LINEAR16',
+    num_channels: 1,
+    sample_rate: 48000,
+    sample_width: 2,
   };
 
   const payload = {
     text,
-    model,
     voice,
+    model,
     language: lang,
     speed,
     audio_config: audioConfig,

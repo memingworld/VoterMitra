@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "bot": "node scripts/run_bot.mjs",
     "lint": "eslint"
   },
   "dependencies": {

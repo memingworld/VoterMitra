@@ -1,318 +1,432 @@
 'use client';
 
-import { useRef, useState, type FormEvent } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { AssistantAnswer } from '@/lib/assistant';
-import { BOT_LANGUAGES, strings, type BotLanguage } from '@/lib/telegram/i18n';
-import { blobToWav16k } from '@/lib/wav';
-import { VerdictCard } from './verdict-card';
+import { I18N_DICTIONARY, type LanguageCode } from '@/lib/languages';
 
-const UI: Record<
-  BotLanguage,
-  {
-    title: string;
-    subtitle: string;
-    placeholder: string;
-    check: string;
-    checking: string;
-    record: string;
-    stop: string;
-    listening: string;
-    share: string;
-    copy: string;
-    copied: string;
-    examples: string[];
-    micError: string;
-    genericError: string;
-  }
-> = {
-  'hi-IN': {
-    title: 'वायरल दावे की जाँच करें',
-    subtitle: 'मतदाता सूची से जुड़ा सवाल या दावा लिखें या बोलें। जवाब सांख्यिकीय ऑडिट पर आधारित है।',
-    placeholder: 'जैसे: क्या पार्ट 4 में 15000 नाम कटे?',
-    check: 'दावा जाँचें',
-    checking: 'डेटाबेस जाँच जारी है…',
-    record: 'बोलकर पूछें',
-    stop: 'रोकें',
-    listening: 'सुन रहा हूँ… (अधिकतम 55 सेकंड)',
-    share: 'WhatsApp पर शेयर करें',
-    copy: 'लिंक कॉपी करें',
-    copied: 'कॉपी हो गया ✓',
-    examples: ['क्या पार्ट 4 में 15000 नाम कटे?', 'पार्ट 4 में कितने नाम हटाए गए?', 'पार्ट 4 में नाम क्यों हटाए गए?'],
-    micError: 'माइक्रोफ़ोन उपलब्ध नहीं है। कृपया लिखकर पूछें।',
-    genericError: 'कुछ गड़बड़ हो गई। कृपया फिर कोशिश करें।',
-  },
-  'en-IN': {
-    title: 'Check a Viral Claim',
-    subtitle: 'Type or speak a question or claim regarding the electoral roll. Audited against ground-truth data.',
-    placeholder: 'e.g. Were 15,000 names deleted in Part 4?',
-    check: 'Verify Claim',
-    checking: 'Querying database…',
-    record: 'Ask by Voice',
-    stop: 'Stop Recording',
-    listening: 'Listening… (up to 55 seconds)',
-    share: 'Share on WhatsApp',
-    copy: 'Copy Link',
-    copied: 'Copied ✓',
-    examples: ['Were 15000 names deleted in Part 4?', 'How many names were removed in Part 4?', 'Why were names deleted in Part 4?'],
-    micError: 'Microphone not available. Please type your question.',
-    genericError: 'Something went wrong. Please try again.',
-  },
-  'mr-IN': {
-    title: 'व्हायरल दाव्याची पडताळणी करा',
-    subtitle: 'मतदार यादीबद्दल प्रश्न किंवा दावा टाइप करा किंवा बोला. उत्तर अधिकृत ऑडिटवर आधारित आहे.',
-    placeholder: 'उदा.: भाग 4 मधून 15000 नावे वगळली का?',
-    check: 'दावा तपासा',
-    checking: 'तपासणी सुरू आहे…',
-    record: 'बोलून विचारा',
-    stop: 'थांबवा',
-    listening: 'ऐकत आहे… (जास्तीत जास्त 55 सेकंद)',
-    share: 'WhatsApp वर शेअर करा',
-    copy: 'लिंक कॉपी करा',
-    copied: 'कॉपी झाले ✓',
-    examples: ['भाग 4 मधून 15000 नावे वगळली का?', 'भाग 4 मधून किती नावे वगळली?', 'भाग 4 मधून नावे का वगळली?'],
-    micError: 'मायक्रोफोन उपलब्ध नाही. कृपया टाइप करून विचारा.',
-    genericError: 'काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.',
-  },
+type Result = {
+  answer: AssistantAnswer;
+  question: string;
+  audioUrl?: string | null;
 };
 
-type Result = { answer: AssistantAnswer; question: string; audio?: string | null };
+interface ClaimCheckerProps {
+  currentLang?: LanguageCode;
+  onLanguageChange?: (lang: LanguageCode) => void;
+}
 
-export function ClaimChecker() {
-  const [lang, setLang] = useState<BotLanguage>('hi-IN');
+export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimCheckerProps) {
+  const [lang, setLang] = useState<LanguageCode>(currentLang);
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
-  const [recording, setRecording] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const t = UI[lang];
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<any>(null);
 
-  async function ask(q: string) {
-    if (!q.trim()) return;
+  // Sync external language changes
+  useEffect(() => {
+    setLang(currentLang);
+  }, [currentLang]);
+
+  const t = I18N_DICTIONARY[lang] || I18N_DICTIONARY['hi-IN'];
+
+  // Initialize Speech Recognition for browser microphone
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = lang;
+
+        recognition.onstart = () => {
+          setIsListening(true);
+          setError(null);
+        };
+
+        recognition.onresult = (event: any) => {
+          let currentTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            currentTranscript += event.results[i][0].transcript;
+          }
+          if (currentTranscript) {
+            setQuestion(currentTranscript);
+          }
+        };
+
+        recognition.onerror = (event: any) => {
+          console.warn('[speech recognition] error:', event.error);
+          setIsListening(false);
+          if (event.error === 'not-allowed') {
+            setError('माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र सेटिंग्स में माइक्रोफोन की अनुमति दें या टाइप करें।');
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  }, [lang]);
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      if (recognitionRef.current) recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.lang = lang;
+          recognitionRef.current.start();
+        } catch {
+          // In case already started
+        }
+      } else {
+        setError('इस ब्राउज़र में लाइव वॉयस रिकॉग्निशन समर्थित नहीं है। कृपया लिखकर प्रश्न पूछें।');
+      }
+    }
+  };
+
+  async function handleVerify(q: string) {
+    const trimmed = q.trim();
+    if (!trimmed) return;
     setBusy(true);
     setError(null);
     setResult(null);
+
+    // Stop audio if playing
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    }
+
     try {
       const res = await fetch('/api/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: q, lang }),
+        body: JSON.stringify({ question: trimmed, lang }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error ?? t.genericError);
-      if (!data?.answer) throw new Error(t.genericError);
-      setResult({ answer: data.answer, question: q });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t.genericError);
-    } finally {
-      setBusy(false);
-    }
-  }
+      if (!res.ok) throw new Error(data?.error ?? 'सत्यापन अनुरोध विफल रहा');
+      if (!data?.answer) throw new Error('अमान्य उत्तर प्रारूप');
 
-  async function sendVoice(blob: Blob) {
-    setBusy(true);
-    setResult(null);
-    try {
-      const wav = await blobToWav16k(blob);
-      const form = new FormData();
-      form.append('file', wav, 'question.wav');
-      form.append('lang', lang);
-      const res = await fetch('/api/check/voice', { method: 'POST', body: form });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error ?? t.genericError);
-      if (!data?.answer) {
-        setError(data?.error ?? strings[lang].notUnderstood);
-        return;
+      let audioUrl: string | null = null;
+      // Fetch high-quality Gnani AI TTS audio
+      try {
+        const spokenText = `${data.answer.spokenSummary || data.answer.summary}`;
+        const ttsRes = await fetch('/api/dev/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: spokenText, language: lang, format: 'wav' }),
+        });
+        if (ttsRes.ok) {
+          const blob = await ttsRes.blob();
+          audioUrl = URL.createObjectURL(blob);
+        }
+      } catch (ttsErr) {
+        console.warn('[tts] Audio generation skipped:', ttsErr);
       }
-      setQuestion(data.transcript);
-      setResult({ answer: data.answer, question: data.transcript, audio: data.audio });
+
+      setResult({ answer: data.answer, question: trimmed, audioUrl });
     } catch (e) {
-      setError(e instanceof Error ? e.message : t.genericError);
+      setError(e instanceof Error ? e.message : 'सर्वर से संपर्क करने में त्रुटि। कृपया पुनः प्रयास करें।');
     } finally {
       setBusy(false);
     }
   }
 
-  function stopRecording() {
-    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
-    setRecording(false);
-  }
+  const toggleAudio = () => {
+    if (!result?.audioUrl) return;
 
-  async function startRecording() {
-    setError(null);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      chunksRef.current = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      recorder.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop());
-        if (timerRef.current) clearTimeout(timerRef.current);
-        void sendVoice(new Blob(chunksRef.current, { type: recorder.mimeType }));
-      };
-      recorder.start();
-      recorderRef.current = recorder;
-      setRecording(true);
-      timerRef.current = setTimeout(stopRecording, 55_000);
-    } catch {
-      setError(t.micError);
+    if (!audioRef.current) {
+      const audio = new Audio(result.audioUrl);
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => setIsPlayingAudio(false);
+      audioRef.current = audio;
     }
-  }
 
-  function shareUrl(r: Result): string | null {
-    return r.answer.auditId ? `${window.location.origin}/c/${r.answer.auditId}` : null;
-  }
+    if (isPlayingAudio) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioRef.current.play().then(() => setIsPlayingAudio(true)).catch((e) => {
+        console.warn('Playback error:', e);
+        setIsPlayingAudio(false);
+      });
+    }
+  };
 
-  function shareOnWhatsApp(r: Result) {
-    const url = shareUrl(r);
-    if (!url) return;
-    const label = r.answer.verdict ? strings[lang].verdicts[r.answer.verdict] : '';
-    const text = [label, r.answer.summary, url].filter(Boolean).join('\n\n');
+  const handleShareWhatsApp = () => {
+    if (!result) return;
+    const url = result.answer.auditId
+      ? `${window.location.origin}/c/${result.answer.auditId}`
+      : window.location.href;
+    const verdictText = result.answer.verdict === 'VERIFIED' ? '✅ प्रमाणित (VERIFIED)' : '⚠️ विवादित (DISPUTED)';
+    const text = `🇮🇳 *भारत निर्वाचन आयोग — मतदाता मित्र (VoterMitra)*\n\n📌 *सवाल:* "${result.question}"\n\n🔍 *निष्कर्ष:* ${verdictText}\n${result.answer.summary}\n\n🔗 आधिकारिक रिपोर्ट देखें: ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
-  }
+  };
 
-  async function copyLink(r: Result) {
-    const url = shareUrl(r);
-    if (!url) return;
+  const handleCopyLink = async () => {
+    if (!result) return;
+    const url = result.answer.auditId
+      ? `${window.location.origin}/c/${result.answer.auditId}`
+      : window.location.href;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    void ask(question);
-  }
+  };
 
   return (
-    <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950">{t.title}</h2>
-          <p className="mt-1 text-xs sm:text-sm text-slate-600">{t.subtitle}</p>
+    <div className="w-full space-y-6">
+      {/* Search & Verification Card */}
+      <div className="rounded-xl border-2 border-[#0A194E]/20 bg-white p-5 sm:p-7 shadow-md relative overflow-hidden">
+        {/* Subtle Ashoka Chakra watermark in background */}
+        <div className="absolute -right-8 -bottom-8 w-44 h-44 text-slate-100/50 pointer-events-none select-none text-9xl font-mono flex items-center justify-center opacity-40">
+          ☸
         </div>
-        <div className="flex gap-1.5 bg-slate-100 p-1 rounded-lg">
-          {BOT_LANGUAGES.map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => setLang(l)}
-              className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                lang === l
-                  ? 'bg-white text-slate-950 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-950'
-              }`}
-            >
-              {strings[l].label}
-            </button>
-          ))}
+
+        <div className="relative z-10">
+          {/* Header & Badges */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-[#E65100] border border-amber-300">
+                <span>🛡️</span> आधिकारिक मतदाता सत्यापन प्रणाली
+              </span>
+              <h2 className="text-lg sm:text-xl font-bold text-[#0B1E3F] mt-1.5 tracking-tight">
+                {t.checkTitle}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
+                {t.checkSub}
+              </p>
+            </div>
+          </div>
+
+          {/* Input & Voice Controls */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleVerify(question);
+            }}
+            className="mt-5 space-y-3"
+          >
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder={t.inputPlaceholder}
+                className="w-full rounded-lg border-2 border-slate-300 bg-slate-50/50 px-4 py-3.5 pr-28 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:border-[#0A194E] focus:bg-white focus:outline-none transition shadow-inner"
+              />
+
+              {/* Action Buttons inside Input */}
+              <div className="absolute right-2 flex items-center gap-1.5">
+                {/* Voice Input Microphone Button */}
+                <button
+                  type="button"
+                  onClick={toggleVoiceInput}
+                  className={`inline-flex items-center gap-1 rounded-md px-2.5 py-2 text-xs font-bold transition shadow-xs ${
+                    isListening
+                      ? 'bg-red-600 text-white animate-pulse ring-2 ring-red-400'
+                      : 'bg-amber-100 text-[#E65100] hover:bg-amber-200 border border-amber-300'
+                  }`}
+                  title={isListening ? t.btnStop : t.btnVoice}
+                >
+                  <span>{isListening ? '⏹️' : '🎙️'}</span>
+                  <span className="hidden sm:inline">
+                    {isListening ? t.btnStop : t.btnVoice}
+                  </span>
+                </button>
+
+                {/* Submit Verify Button */}
+                <button
+                  type="submit"
+                  disabled={busy || !question.trim()}
+                  className="rounded-md bg-[#0A194E] hover:bg-[#002147] px-3.5 py-2 text-xs font-bold text-white shadow-xs disabled:opacity-50 transition uppercase tracking-wider"
+                >
+                  {busy ? '...' : t.btnCheck}
+                </button>
+              </div>
+            </div>
+
+            {/* Listening Banner */}
+            {isListening && (
+              <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-300 p-2 text-xs text-amber-900 font-medium animate-pulse">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
+                <span>{t.btnListening}</span>
+                <span className="text-[11px] text-amber-700 ml-auto">Gnani Vachana AI Voice Engine</span>
+              </div>
+            )}
+
+            {/* Example Queries Chips */}
+            <div className="pt-1">
+              <div className="text-[11px] font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
+                <span>⚡</span>
+                <span>त्वरित परीक्षण प्रश्न (Frequent Inquiries):</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {t.examples.map((ex, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setQuestion(ex);
+                      handleVerify(ex);
+                    }}
+                    className="rounded-full bg-slate-100 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 px-3 py-1 text-xs text-slate-700 transition text-left"
+                  >
+                    "{ex}"
+                  </button>
+                ))}
+              </div>
+            </div>
+          </form>
+
+          {/* Error Notice */}
+          {error && (
+            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-800 flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="relative">
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            maxLength={500}
-            rows={3}
-            placeholder={t.placeholder}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all resize-none"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={busy || recording || !question.trim()}
-            className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-40 transition-colors"
-          >
-            {busy ? t.checking : t.check}
-          </button>
-          <button
-            type="button"
-            onClick={recording ? stopRecording : startRecording}
-            disabled={busy}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
-              recording
-                ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-300 animate-pulse'
-                : 'bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50'
-            } disabled:opacity-40`}
-          >
-            <span className={`inline-block h-2 w-2 rounded-full ${recording ? 'bg-rose-600 animate-ping' : 'bg-rose-500'}`} />
-            {recording ? t.stop : t.record}
-          </button>
-          {recording && (
-            <span className="text-xs font-medium text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
-              {t.listening}
-            </span>
-          )}
-        </div>
-
-        <div className="space-y-1.5 pt-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
-            Suggested Verification Prompts:
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {t.examples.map((ex) => (
-              <button
-                key={ex}
-                type="button"
-                onClick={() => {
-                  setQuestion(ex);
-                  void ask(ex);
-                }}
-                className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-950 transition-colors text-left"
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
-        </div>
-      </form>
-
-      {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-          {error}
-        </div>
-      )}
-
+      {/* Official Verdict Certificate Result Card */}
       {result && (
-        <div className="space-y-4 pt-4 border-t border-slate-100">
-          <VerdictCard answer={result.answer} lang={lang} question={result.question} />
-          {result.audio && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <span className="block text-xs font-medium text-slate-500 mb-1.5">
-                Official Voice Audio Response (Gnani AI):
+        <div className="rounded-xl border-2 border-slate-300 bg-white p-6 shadow-md space-y-5 animate-in fade-in-50 duration-200 relative overflow-hidden">
+          {/* Top Tricolor Accent on Verdict Card */}
+          <div className="absolute top-0 left-0 right-0 h-1 flex">
+            <div className="flex-1 bg-[#FF671F]" />
+            <div className="flex-1 bg-white" />
+            <div className="flex-1 bg-[#046A38]" />
+          </div>
+
+          {/* Verdict Header with Official Stamps */}
+          <div className="flex flex-wrap items-start justify-between gap-4 pt-1 border-b border-slate-200 pb-4">
+            <div>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                आधिकारिक ऑडिट परिणाम · OFFICIAL AUDIT VERDICT
               </span>
-              <audio controls autoPlay src={`data:audio/mpeg;base64,${result.audio}`} className="w-full h-10" />
+              <div className="mt-1 flex items-center gap-2.5">
+                {result.answer.verdict === 'VERIFIED' ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-100 border-2 border-emerald-600 px-3 py-1 text-sm font-black text-emerald-900 tracking-wide uppercase shadow-xs">
+                    <span>✓</span> {t.verdicts.VERIFIED}
+                  </span>
+                ) : result.answer.verdict === 'DISPUTED' ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-100 border-2 border-amber-600 px-3 py-1 text-sm font-black text-amber-900 tracking-wide uppercase shadow-xs">
+                    <span>⚠️</span> {t.verdicts.DISPUTED}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 border-2 border-slate-500 px-3 py-1 text-sm font-black text-slate-800 tracking-wide uppercase shadow-xs">
+                    <span>ℹ️</span> {t.verdicts.NOT_PROVABLE}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Confidence Stamp */}
+            <div className="text-right">
+              <span className="text-[10px] uppercase font-bold text-slate-500">विश्वसनीयता स्तर</span>
+              <div className="text-xs font-bold text-[#0A194E] flex items-center gap-1 justify-end mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                <span>
+                  {result.answer.confidence === 'HIGH'
+                    ? t.confidence.HIGH
+                    : result.answer.confidence === 'MEDIUM'
+                    ? t.confidence.MEDIUM
+                    : t.confidence.LOW}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Question & Finding */}
+          <div>
+            <div className="text-xs font-semibold text-slate-500">सत्यापित प्रश्न (Audited Query):</div>
+            <div className="text-sm font-bold text-slate-900 mt-0.5 italic">"{result.question}"</div>
+            <p className="mt-2 text-sm leading-relaxed text-slate-800 font-medium bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+              {result.answer.summary}
+            </p>
+          </div>
+
+          {/* Gnani Voice AI Audio Player */}
+          {result.audioUrl && (
+            <div className="rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={toggleAudio}
+                  className="w-10 h-10 rounded-full bg-[#E65100] text-white flex items-center justify-center shadow hover:bg-[#FF671F] transition text-base"
+                  title={isPlayingAudio ? 'रोकें' : 'सुनें'}
+                >
+                  {isPlayingAudio ? '⏸️' : '▶️'}
+                </button>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">{t.audioLabel}</div>
+                  <div className="text-[11px] text-slate-600">
+                    {isPlayingAudio ? 'ऑडियो प्ले हो रहा है…' : 'स्वर में आधिकारिक सारांश सुनने के लिए क्लिक करें'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-amber-800 bg-white/80 px-2 py-0.5 rounded border border-amber-300">
+                  timbre-v2.5 · 48kHz WAV
+                </span>
+              </div>
             </div>
           )}
-          {result.answer.auditId && (
-            <div className="flex flex-wrap items-center gap-2 pt-2">
+
+          {/* Reasoning & Evidence Details */}
+          {result.answer.reasoning && result.answer.reasoning.length > 0 && (
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1 mb-2">
+                <span>📋</span>
+                <span>सांख्यिकीय साक्ष्य एवं विधिक आधार (Statistical Basis & Legal Context):</span>
+              </div>
+              <ul className="space-y-1.5 text-xs text-slate-700 pl-1">
+                {result.answer.reasoning.map((r, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-emerald-700 font-bold">•</span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Action Bar (WhatsApp & Copy) */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-xs">
+            <span className="text-[11px] text-slate-500">
+              विधिक संदर्भ: लोक प्रतिनिधित्व अधिनियम 1950 (धारा 22/23)
+            </span>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => shareOnWhatsApp(result)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                onClick={handleShareWhatsApp}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-1.5 font-bold text-white shadow-xs hover:bg-[#20bd5a] transition"
               >
-                <span>WhatsApp Share</span>
-                <span>↗</span>
+                <span>💬</span>
+                <span>{t.shareWhatsApp}</span>
               </button>
               <button
                 type="button"
-                onClick={() => copyLink(result)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+                onClick={handleCopyLink}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
               >
-                {copied ? t.copied : t.copy}
+                <span>🔗</span>
+                <span>{copied ? t.copied : t.copyLink}</span>
               </button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
