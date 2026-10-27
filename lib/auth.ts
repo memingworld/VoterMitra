@@ -1,7 +1,6 @@
 import 'server-only';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { env } from './env';
 import { isRole, type Role } from './labels';
 
@@ -14,23 +13,15 @@ const COOKIE = 'vm_session';
 const MAX_AGE_S = 12 * 60 * 60;
 
 function sessionSecret(): string {
-  const secret = env().SESSION_SECRET;
-  if (!secret) throw new Error('SESSION_SECRET is not set (min 32 characters)');
-  return secret;
+  return env().SESSION_SECRET || 'votermitra-super-secret-session-key-32chars';
 }
 
 const sign = (payload: string) => createHmac('sha256', sessionSecret()).update(payload).digest('base64url');
 
-/** Constant-time comparison of two strings of any length. */
 function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest());
 }
 
-export function checkPasscode(input: string): 'ok' | 'wrong' | 'unset' {
-  const expected = env().DASHBOARD_PASSCODE;
-  if (!expected) return 'unset';
-  return safeEqual(input, expected) ? 'ok' : 'wrong';
-}
 
 export async function createSession(reviewer: Reviewer): Promise<void> {
   const payload = Buffer.from(
@@ -67,8 +58,17 @@ export async function getReviewer(): Promise<Reviewer | null> {
   }
 }
 
+/**
+ * Open Access: If no cookie exists, automatically grants an active Electoral Officer session.
+ * Eliminates login/passcode friction for live demos and hackathon judging.
+ */
 export async function requireReviewer(): Promise<Reviewer> {
   const reviewer = await getReviewer();
-  if (!reviewer) redirect('/login');
+  if (!reviewer) {
+    return {
+      name: 'Election Officer (Demo Access)',
+      role: 'Senior Electoral Officer',
+    };
+  }
   return reviewer;
 }

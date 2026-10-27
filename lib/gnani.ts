@@ -80,6 +80,9 @@ export async function transcribe(
   options: TranscribeOptions = {},
 ): Promise<TranscribeResult> {
   const apiKey = env().GNANI_API_KEY;
+  if (!apiKey) {
+    throw new GnaniError('GNANI_API_KEY is not configured in environment variables', 500);
+  }
   const lang = options.language ?? 'hi-IN';
   const format = options.format ?? 'transcribe';
 
@@ -148,6 +151,9 @@ export async function synthesize(
   options: SynthesizeOptions = {},
 ): Promise<SynthesizeResult> {
   const apiKey = env().GNANI_API_KEY;
+  if (!apiKey) {
+    throw new GnaniError('GNANI_API_KEY is not configured in environment variables', 500);
+  }
   const lang = options.language ?? 'hi-IN';
   const defaults = DEFAULT_VOICES[lang] ?? { model: 'timbre-v3.0', voice: 'Shivani' };
   const model = options.model ?? defaults.model;

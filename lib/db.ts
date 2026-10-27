@@ -14,7 +14,7 @@ function createPool(): Pool {
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
-    ssl: connectionString.includes('sslmode=disable')
+    ssl: connectionString && connectionString.includes('sslmode=disable')
       ? false
       : {
           rejectUnauthorized: false,
