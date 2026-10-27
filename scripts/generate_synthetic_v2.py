@@ -469,6 +469,15 @@ def main():
                 f"VALUES ('{anom['category']}', '{anom['severity']}', 'PENDING', {anom['ac_no']}, {anom['part_no']}, {anom['section_no']}, {anom['affected_count']}, {anom['confidence_score']}, 4.25, '{finding_esc}', '{evidence_json}'::jsonb, '{breakdown_json}'::jsonb, '{innocent_json}'::jsonb, true, '{anom['scenario_id']}');\n"
             )
             
+        # 3. Benchmark Scenarios insert
+        f.write("\n-- 3. Insert Benchmark Scenarios Answer Key\n")
+        for anom in planted_anomalies:
+            desc_esc = anom['primary_finding'].replace("'", "''")
+            f.write(
+                f"INSERT INTO benchmark_scenarios (scenario_id, anomaly_type, ac_no, part_no, description) "
+                f"VALUES ('{anom['scenario_id']}', '{anom['category']}', {anom['ac_no']}, {anom['part_no']}, '{desc_esc}') ON CONFLICT (scenario_id) DO NOTHING;\n"
+            )
+            
     print(f"  -> Exported: {V2_SQL_PATH}")
     print("\n[SUCCESS] Synthetic Revision Planter Finished Successfully!")
 

@@ -161,7 +161,16 @@ CREATE TABLE reviews (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 8. CLAIM AUDITS (Telegram Bot & Fact-Checker Logs)
+-- 8. BENCHMARK SCENARIOS (Ground Truth Answer Key)
+CREATE TABLE IF NOT EXISTS benchmark_scenarios (
+    scenario_id VARCHAR(50) PRIMARY KEY,
+    anomaly_type VARCHAR(80) NOT NULL,
+    ac_no INTEGER,
+    part_no INTEGER,
+    description TEXT
+);
+
+-- 9. CLAIM AUDITS (Telegram Bot & Fact-Checker Logs)
 CREATE TABLE claim_audits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     source VARCHAR(20) NOT NULL CHECK (source IN ('TELEGRAM_VOICE', 'TELEGRAM_TEXT', 'WEB_UI', 'API')),
@@ -172,7 +181,9 @@ CREATE TABLE claim_audits (
     selected_function VARCHAR(80),
     function_args JSONB DEFAULT '{}'::jsonb,
     tool_raw_output JSONB DEFAULT '{}'::jsonb,
-    verdict VARCHAR(30) CHECK (verdict IN ('VERIFIED_TRUE', 'DEBUNKED_FALSE', 'MISLEADING', 'DATA_UNAVAILABLE')),
+    verdict VARCHAR(30),
+    confidence VARCHAR(20),
+    reasoning JSONB DEFAULT '[]'::jsonb,
     official_explanation TEXT NOT NULL,
     synthesized_audio_url TEXT,
     execution_time_ms INTEGER,

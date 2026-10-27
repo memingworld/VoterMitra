@@ -7,11 +7,15 @@ export const EnvSchema = z.object({
   GNANI_API_KEY: z.string().min(1, 'GNANI_API_KEY is required'),
   DEV_ROUTES_SECRET: z.string().min(1, 'DEV_ROUTES_SECRET is required'),
 
+  // Telegram Bot
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_SECRET_TOKEN: z.string().optional(),
+  TELEGRAM_BOT_USERNAME: z.string().optional(),
+
   // Dashboard
   DASHBOARD_PASSCODE: z.string().min(6).optional(),
   SESSION_SECRET: z.string().min(32, 'must be at least 32 characters').optional(),
   BENCHMARK_PLANTED_TOTAL: z.coerce.number().int().positive().optional(),
-  TELEGRAM_BOT_USERNAME: z.string().optional(),
   PUBLIC_BASE_URL: z.string().optional(),
 });
 
@@ -36,12 +40,14 @@ export function env(): Env {
         DATABASE_URL: process.env.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy',
         GNANI_API_KEY: process.env.GNANI_API_KEY || 'dummy-key',
         DEV_ROUTES_SECRET: process.env.DEV_ROUTES_SECRET || 'dummy-secret',
+        TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+        TELEGRAM_SECRET_TOKEN: process.env.TELEGRAM_SECRET_TOKEN,
+        TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME,
         DASHBOARD_PASSCODE: process.env.DASHBOARD_PASSCODE,
         SESSION_SECRET: process.env.SESSION_SECRET || '01234567890123456789012345678901',
         BENCHMARK_PLANTED_TOTAL: process.env.BENCHMARK_PLANTED_TOTAL
           ? Number(process.env.BENCHMARK_PLANTED_TOTAL)
           : undefined,
-        TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME,
         PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL,
       };
     }

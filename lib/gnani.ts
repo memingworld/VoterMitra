@@ -14,9 +14,9 @@ export class GnaniError extends Error {
 }
 
 const DEFAULT_VOICES: Record<string, { model: string; voice: string }> = {
-  'hi-IN': { model: 'timbre-v3.0', voice: 'Shivani' },
-  'en-IN': { model: 'timbre-v3.0', voice: 'Shivani' },
-  'mr-IN': { model: 'timbre-v3.0', voice: 'Shivani' },
+  'hi-IN': { model: 'timbre-v2.5', voice: 'Nalini' },
+  'en-IN': { model: 'timbre-v2.5', voice: 'Nalini' },
+  'mr-IN': { model: 'timbre-v2.5', voice: 'Zahira' },
 };
 
 async function fetchWithRetry(
