@@ -1,0 +1,942 @@
+[
+  {
+    "scenario_id": "ANOM-CAT1-DEL-01",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 9,
+    "section_no": 1,
+    "affected_count": 37,
+    "deviation_metric": "Z-Score: +4.56 sigma",
+    "affected_sample_epics": [
+      "NLN2631752",
+      "NLN2792760",
+      "NLN2378859",
+      "NLN2102381",
+      "NLN2383016"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 37 female electors aged 20-35 in Part 9 of AC 44.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.921
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-02",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 8,
+    "section_no": 2,
+    "affected_count": 38,
+    "deviation_metric": "Z-Score: +4.88 sigma",
+    "affected_sample_epics": [
+      "NBJ2415189",
+      "IPS3020815",
+      "IPS2290582",
+      "IPS2664555",
+      "TEMPBB579C5"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 38 female electors aged 20-35 in Part 8 of AC 58.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9788
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-03",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 6,
+    "part_no": 8,
+    "section_no": 1,
+    "affected_count": 46,
+    "deviation_metric": "Z-Score: +4.29 sigma",
+    "affected_sample_epics": [
+      "URO3040102",
+      "URO3045192",
+      "URO3038965",
+      "URO2391273",
+      "URO2114865"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 46 female electors aged 20-35 in Part 8 of AC 6.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9739
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-04",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 4,
+    "section_no": 2,
+    "affected_count": 48,
+    "deviation_metric": "Z-Score: +3.84 sigma",
+    "affected_sample_epics": [
+      "NLN2649754",
+      "NLN2335990",
+      "NLN2268935",
+      "NLN2585305",
+      "NLN2601581"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 48 female electors aged 20-35 in Part 4 of AC 44.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9485
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-05",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 10,
+    "section_no": 1,
+    "affected_count": 48,
+    "deviation_metric": "Z-Score: +5.05 sigma",
+    "affected_sample_epics": [
+      "IPS3329844",
+      "IPS3249810",
+      "IPS2682425",
+      "PS2988574",
+      "IPS2613999"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 48 female electors aged 20-35 in Part 10 of AC 58.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9666
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-06",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 8,
+    "section_no": 1,
+    "affected_count": 46,
+    "deviation_metric": "Z-Score: +4.16 sigma",
+    "affected_sample_epics": [
+      "NLN2093242",
+      "NLN2272359",
+      "NLN2534550",
+      "NLN2641918",
+      "NLN2743904"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 46 female electors aged 20-35 in Part 8 of AC 44.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9231
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-07",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 9,
+    "section_no": 1,
+    "affected_count": 43,
+    "deviation_metric": "Z-Score: +4.07 sigma",
+    "affected_sample_epics": [
+      "IPS3173481",
+      "IPS2234043",
+      "IPS3372448",
+      "IPS2495595",
+      "IPS2539368"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 43 female electors aged 20-35 in Part 9 of AC 58.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9577
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-08",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 4,
+    "section_no": 4,
+    "affected_count": 47,
+    "deviation_metric": "Z-Score: +5.04 sigma",
+    "affected_sample_epics": [
+      "IPS2446309",
+      "IPS3094273",
+      "IPS3140506",
+      "IPS3291762",
+      "IPS2573905"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 47 female electors aged 20-35 in Part 4 of AC 58.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9428
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-09",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 1,
+    "section_no": 4,
+    "affected_count": 35,
+    "deviation_metric": "Z-Score: +3.85 sigma",
+    "affected_sample_epics": [
+      "IPS3153319",
+      "IPS2695377",
+      "IPS2831782",
+      "IPS2647880",
+      "IPS3094513"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 35 female electors aged 20-35 in Part 1 of AC 58.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9769
+  },
+  {
+    "scenario_id": "ANOM-CAT1-DEL-10",
+    "category": "BULK_DELETION",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 6,
+    "section_no": 1,
+    "affected_count": 31,
+    "deviation_metric": "Z-Score: +4.11 sigma",
+    "affected_sample_epics": [
+      "IPS3346038",
+      "IPS3051422",
+      "IPS3348901",
+      "TEMPAE4B318",
+      "IPS3346178"
+    ],
+    "primary_finding": "Abnormal targeted deletion of 31 female electors aged 20-35 in Part 6 of AC 58.",
+    "innocent_explanations": [
+      "Post-marital name transfer to husband's constituency under Form 8",
+      "Slum demolition and rehabilitation drive under urban renewal scheme",
+      "Closure of working women's hostel facility in the sector"
+    ],
+    "confidence_score": 0.9465
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-01",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 5,
+    "section_no": 1,
+    "affected_count": 64,
+    "deviation_metric": "Address Density: 64 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO7865278",
+      "URO9733484",
+      "URO7575844",
+      "URO6524041",
+      "URO3384842"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 64 unrelated electors registered at 'Shop No. 4, Market Complex' in Part 5.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9574
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-02",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 3,
+    "section_no": 1,
+    "affected_count": 45,
+    "deviation_metric": "Address Density: 45 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO1401051",
+      "URO8258673",
+      "URO6093796",
+      "URO4191825",
+      "URO7859696"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 45 unrelated electors registered at 'House No. 0, Ground Floor' in Part 3.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.961
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-03",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 6,
+    "part_no": 4,
+    "section_no": 1,
+    "affected_count": 43,
+    "deviation_metric": "Address Density: 43 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO3865719",
+      "URO1990623",
+      "URO5574313",
+      "URO2127756",
+      "URO7474112"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 43 unrelated electors registered at 'Plot 12-B, Basement' in Part 4.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9506
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-04",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 3,
+    "section_no": 1,
+    "affected_count": 68,
+    "deviation_metric": "Address Density: 68 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO5082148",
+      "URO0233030",
+      "URO4578610",
+      "URO2798552",
+      "URO0602933"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 68 unrelated electors registered at 'Khasra 44/2, Tin Shed' in Part 3.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9774
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-05",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 2,
+    "section_no": 1,
+    "affected_count": 65,
+    "deviation_metric": "Address Density: 65 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO2223943",
+      "URO0878141",
+      "URO7552314",
+      "URO5949299",
+      "URO0533645"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 65 unrelated electors registered at 'Flat C-1, Commercial Wing' in Part 2.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9455
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-06",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 6,
+    "section_no": 1,
+    "affected_count": 56,
+    "deviation_metric": "Address Density: 56 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO3502080",
+      "URO7031207",
+      "URO5705120",
+      "URO7234601",
+      "URO0371837"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 56 unrelated electors registered at 'Property No. 99, Back Lane' in Part 6.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9753
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-07",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 8,
+    "section_no": 1,
+    "affected_count": 62,
+    "deviation_metric": "Address Density: 62 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO8926860",
+      "URO2220644",
+      "URO2309407",
+      "URO9733977",
+      "URO3849830"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 62 unrelated electors registered at 'Cabin No. 7, Community Hall' in Part 8.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9784
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-08",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 58,
+    "part_no": 1,
+    "section_no": 1,
+    "affected_count": 48,
+    "deviation_metric": "Address Density: 48 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO0119470",
+      "URO0642569",
+      "URO7661830",
+      "URO9855460",
+      "URO7432806"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 48 unrelated electors registered at 'B-Block Garage Unit 2' in Part 1.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9669
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-09",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 44,
+    "part_no": 7,
+    "section_no": 1,
+    "affected_count": 56,
+    "deviation_metric": "Address Density: 56 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO5998056",
+      "URO5045547",
+      "URO7426629",
+      "URO8519610",
+      "URO8792326"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 56 unrelated electors registered at 'Shop 18, Main Road' in Part 7.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9667
+  },
+  {
+    "scenario_id": "ANOM-CAT2-STACK-10",
+    "category": "HOUSE_OVERCROWDING",
+    "severity": "CRITICAL",
+    "ac_no": 13,
+    "part_no": 1,
+    "section_no": 1,
+    "affected_count": 49,
+    "deviation_metric": "Address Density: 49 electors / unit (Poisson p < 1e-6)",
+    "affected_sample_epics": [
+      "URO4134327",
+      "URO0417765",
+      "URO4815698",
+      "URO2720634",
+      "URO3829657"
+    ],
+    "primary_finding": "Address overcrowding anomaly: 49 unrelated electors registered at 'Plot 88, Near Transformer' in Part 1.",
+    "innocent_explanations": [
+      "Newly notified student or PG hostel accommodation",
+      "Police line or paramilitary staff transit quarters",
+      "Ancestral undivided Hindu Undivided Family (HUF) residential property"
+    ],
+    "confidence_score": 0.9477
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-01",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 58,
+    "part_no": 2,
+    "section_no": 1,
+    "affected_count": 13,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 5 and Part 2",
+    "affected_sample_epics": [
+      "TSO3760375",
+      "TSO4821456",
+      "TSO5328632",
+      "TSO6667850",
+      "TSO7208115"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 13 electors in Part 2 match voters in Part 5.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9245
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-02",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 58,
+    "part_no": 8,
+    "section_no": 1,
+    "affected_count": 13,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 6 and Part 8",
+    "affected_sample_epics": [
+      "TSO0548510",
+      "TSO1749075",
+      "TSO3998935",
+      "TSO4492683",
+      "TSO1589357"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 13 electors in Part 8 match voters in Part 6.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9323
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-03",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 58,
+    "part_no": 9,
+    "section_no": 1,
+    "affected_count": 19,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 4 and Part 9",
+    "affected_sample_epics": [
+      "TSO0229604",
+      "TSO4327018",
+      "TSO5106794",
+      "TSO9756792",
+      "TSO2877725"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 19 electors in Part 9 match voters in Part 4.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9331
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-04",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 44,
+    "part_no": 1,
+    "section_no": 1,
+    "affected_count": 17,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 4 and Part 1",
+    "affected_sample_epics": [
+      "TSO7861706",
+      "TSO3048913",
+      "TSO8249671",
+      "TSO8325823",
+      "TSO8687007"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 17 electors in Part 1 match voters in Part 4.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9241
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-05",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 58,
+    "part_no": 1,
+    "section_no": 1,
+    "affected_count": 16,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 5 and Part 1",
+    "affected_sample_epics": [
+      "TSO7930361",
+      "TSO4987283",
+      "TSO9992192",
+      "TSO1249384",
+      "TSO3089487"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 16 electors in Part 1 match voters in Part 5.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9507
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-06",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 6,
+    "part_no": 8,
+    "section_no": 1,
+    "affected_count": 18,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 4 and Part 8",
+    "affected_sample_epics": [
+      "TSO6196399",
+      "TSO0767699",
+      "TSO1507859",
+      "TSO3110919",
+      "TSO3928456"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 18 electors in Part 8 match voters in Part 4.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9204
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-07",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 58,
+    "part_no": 5,
+    "section_no": 1,
+    "affected_count": 20,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 2 and Part 5",
+    "affected_sample_epics": [
+      "TSO3230241",
+      "TSO0261534",
+      "TSO7355289",
+      "TSO6112233",
+      "TSO8655963"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 20 electors in Part 5 match voters in Part 2.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9282
+  },
+  {
+    "scenario_id": "ANOM-CAT3-CLONE-08",
+    "category": "DUPLICATE_EPIC",
+    "severity": "HIGH",
+    "ac_no": 6,
+    "part_no": 4,
+    "section_no": 1,
+    "affected_count": 21,
+    "deviation_metric": "RapidFuzz Identity Similarity: 100% across Part 8 and Part 4",
+    "affected_sample_epics": [
+      "TSO2840445",
+      "TSO6690782",
+      "TSO6333738",
+      "TSO9877515",
+      "TSO3663778"
+    ],
+    "primary_finding": "Cross-booth duplicate identities: 21 electors in Part 4 match voters in Part 8.",
+    "innocent_explanations": [
+      "Elector submitted Form 8 migration request; previous booth deletion pending administrative sign-off",
+      "Twin siblings sharing identical paternal details and household address"
+    ],
+    "confidence_score": 0.9308
+  },
+  {
+    "scenario_id": "ANOM-CAT4-AGE-01",
+    "category": "AGE_DISCREPANCY",
+    "severity": "MEDIUM",
+    "ac_no": 13,
+    "part_no": 1,
+    "section_no": 1,
+    "affected_count": 25,
+    "deviation_metric": "Age Jump Anomaly: Delta >= 12 years in 1 revision cycle (|Delta_Age - 1| >> 0)",
+    "affected_sample_epics": [
+      "AFQ2434249",
+      "AFQ2535557",
+      "AFQ2445070",
+      "AFQ1589943",
+      "AFQ2141976"
+    ],
+    "primary_finding": "Impossible chrono-aging detected: 25 electors in Part 1 shifted age by 12-22 years in 1 year.",
+    "innocent_explanations": [
+      "Clerical typographical error in Year of Birth during data digitization",
+      "Aadhaar linkage reconciliation correcting historical estimated age"
+    ],
+    "confidence_score": 0.9103
+  },
+  {
+    "scenario_id": "ANOM-CAT4-AGE-02",
+    "category": "AGE_DISCREPANCY",
+    "severity": "MEDIUM",
+    "ac_no": 44,
+    "part_no": 1,
+    "section_no": 2,
+    "affected_count": 26,
+    "deviation_metric": "Age Jump Anomaly: Delta >= 12 years in 1 revision cycle (|Delta_Age - 1| >> 0)",
+    "affected_sample_epics": [
+      "NLN0006593",
+      "NLN2349629",
+      "NLN2335339",
+      "NLN2287159",
+      "XGV1485564"
+    ],
+    "primary_finding": "Impossible chrono-aging detected: 26 electors in Part 1 shifted age by 12-22 years in 1 year.",
+    "innocent_explanations": [
+      "Clerical typographical error in Year of Birth during data digitization",
+      "Aadhaar linkage reconciliation correcting historical estimated age"
+    ],
+    "confidence_score": 0.885
+  },
+  {
+    "scenario_id": "ANOM-CAT4-AGE-03",
+    "category": "AGE_DISCREPANCY",
+    "severity": "MEDIUM",
+    "ac_no": 44,
+    "part_no": 10,
+    "section_no": 2,
+    "affected_count": 24,
+    "deviation_metric": "Age Jump Anomaly: Delta >= 12 years in 1 revision cycle (|Delta_Age - 1| >> 0)",
+    "affected_sample_epics": [
+      "NLN2577724",
+      "RJN2125409",
+      "UKS2440972",
+      "NCR0893149",
+      "NRX3782280"
+    ],
+    "primary_finding": "Impossible chrono-aging detected: 24 electors in Part 10 shifted age by 12-22 years in 1 year.",
+    "innocent_explanations": [
+      "Clerical typographical error in Year of Birth during data digitization",
+      "Aadhaar linkage reconciliation correcting historical estimated age"
+    ],
+    "confidence_score": 0.9065
+  },
+  {
+    "scenario_id": "ANOM-CAT4-AGE-04",
+    "category": "AGE_DISCREPANCY",
+    "severity": "MEDIUM",
+    "ac_no": 44,
+    "part_no": 2,
+    "section_no": 2,
+    "affected_count": 14,
+    "deviation_metric": "Age Jump Anomaly: Delta >= 12 years in 1 revision cycle (|Delta_Age - 1| >> 0)",
+    "affected_sample_epics": [
+      "NLN2411247",
+      "NLN1923969",
+      "NLN2312684",
+      "NLN2268489",
+      "NLN0015560"
+    ],
+    "primary_finding": "Impossible chrono-aging detected: 14 electors in Part 2 shifted age by 12-22 years in 1 year.",
+    "innocent_explanations": [
+      "Clerical typographical error in Year of Birth during data digitization",
+      "Aadhaar linkage reconciliation correcting historical estimated age"
+    ],
+    "confidence_score": 0.881
+  },
+  {
+    "scenario_id": "ANOM-CAT4-AGE-05",
+    "category": "AGE_DISCREPANCY",
+    "severity": "MEDIUM",
+    "ac_no": 44,
+    "part_no": 3,
+    "section_no": 1,
+    "affected_count": 14,
+    "deviation_metric": "Age Jump Anomaly: Delta >= 12 years in 1 revision cycle (|Delta_Age - 1| >> 0)",
+    "affected_sample_epics": [
+      "CTC0497727",
+      "CTC0515569",
+      "NLN1716041",
+      "NLN1612803",
+      "NLN1680214"
+    ],
+    "primary_finding": "Impossible chrono-aging detected: 14 electors in Part 3 shifted age by 12-22 years in 1 year.",
+    "innocent_explanations": [
+      "Clerical typographical error in Year of Birth during data digitization",
+      "Aadhaar linkage reconciliation correcting historical estimated age"
+    ],
+    "confidence_score": 0.9175
+  },
+  {
+    "scenario_id": "ANOM-CAT4-AGE-06",
+    "category": "AGE_DISCREPANCY",
+    "severity": "MEDIUM",
+    "ac_no": 44,
+    "part_no": 4,
+    "section_no": 2,
+    "affected_count": 22,
+    "deviation_metric": "Age Jump Anomaly: Delta >= 12 years in 1 revision cycle (|Delta_Age - 1| >> 0)",
+    "affected_sample_epics": [
+      "NLN1755189",
+      "NLN2693588",
+      "NLN2372100",
+      "SBJ2719531",
+      "NLN1902914"
+    ],
+    "primary_finding": "Impossible chrono-aging detected: 22 electors in Part 4 shifted age by 12-22 years in 1 year.",
+    "innocent_explanations": [
+      "Clerical typographical error in Year of Birth during data digitization",
+      "Aadhaar linkage reconciliation correcting historical estimated age"
+    ],
+    "confidence_score": 0.9331
+  },
+  {
+    "scenario_id": "ANOM-CAT5-RATIO-01",
+    "category": "SEX_RATIO_DISTORTION",
+    "severity": "HIGH",
+    "ac_no": 44,
+    "part_no": 5,
+    "section_no": 2,
+    "affected_count": 58,
+    "deviation_metric": "Sex Ratio: 320 F / 1000 M (Constituency Baseline: 860 F / 1000 M, Z = +4.8 sigma)",
+    "affected_sample_epics": [
+      "URO1892419",
+      "URO2525715",
+      "URO6838903",
+      "URO4363910",
+      "URO3263039"
+    ],
+    "primary_finding": "Severe sex ratio skew in Section 2, Part 5: 58 exclusively male electors injected.",
+    "innocent_explanations": [
+      "Construction worker temporary camp setup for metro/highway infrastructure",
+      "Industrial factory single-male workforce housing unit"
+    ],
+    "confidence_score": 0.943
+  },
+  {
+    "scenario_id": "ANOM-CAT5-RATIO-02",
+    "category": "SEX_RATIO_DISTORTION",
+    "severity": "HIGH",
+    "ac_no": 44,
+    "part_no": 6,
+    "section_no": 2,
+    "affected_count": 65,
+    "deviation_metric": "Sex Ratio: 320 F / 1000 M (Constituency Baseline: 860 F / 1000 M, Z = +4.8 sigma)",
+    "affected_sample_epics": [
+      "URO0118458",
+      "URO3408487",
+      "URO8598831",
+      "URO3243298",
+      "URO2961844"
+    ],
+    "primary_finding": "Severe sex ratio skew in Section 2, Part 6: 65 exclusively male electors injected.",
+    "innocent_explanations": [
+      "Construction worker temporary camp setup for metro/highway infrastructure",
+      "Industrial factory single-male workforce housing unit"
+    ],
+    "confidence_score": 0.9356
+  },
+  {
+    "scenario_id": "ANOM-CAT5-RATIO-03",
+    "category": "SEX_RATIO_DISTORTION",
+    "severity": "HIGH",
+    "ac_no": 44,
+    "part_no": 7,
+    "section_no": 2,
+    "affected_count": 68,
+    "deviation_metric": "Sex Ratio: 320 F / 1000 M (Constituency Baseline: 860 F / 1000 M, Z = +4.8 sigma)",
+    "affected_sample_epics": [
+      "URO1964215",
+      "URO5576769",
+      "URO3668788",
+      "URO6196893",
+      "URO0305872"
+    ],
+    "primary_finding": "Severe sex ratio skew in Section 2, Part 7: 68 exclusively male electors injected.",
+    "innocent_explanations": [
+      "Construction worker temporary camp setup for metro/highway infrastructure",
+      "Industrial factory single-male workforce housing unit"
+    ],
+    "confidence_score": 0.9475
+  },
+  {
+    "scenario_id": "ANOM-CAT5-RATIO-04",
+    "category": "SEX_RATIO_DISTORTION",
+    "severity": "HIGH",
+    "ac_no": 44,
+    "part_no": 8,
+    "section_no": 2,
+    "affected_count": 67,
+    "deviation_metric": "Sex Ratio: 320 F / 1000 M (Constituency Baseline: 860 F / 1000 M, Z = +4.8 sigma)",
+    "affected_sample_epics": [
+      "URO3816493",
+      "URO9196655",
+      "URO7046117",
+      "URO3904090",
+      "URO0880501"
+    ],
+    "primary_finding": "Severe sex ratio skew in Section 2, Part 8: 67 exclusively male electors injected.",
+    "innocent_explanations": [
+      "Construction worker temporary camp setup for metro/highway infrastructure",
+      "Industrial factory single-male workforce housing unit"
+    ],
+    "confidence_score": 0.9332
+  },
+  {
+    "scenario_id": "ANOM-CAT5-RATIO-05",
+    "category": "SEX_RATIO_DISTORTION",
+    "severity": "HIGH",
+    "ac_no": 44,
+    "part_no": 9,
+    "section_no": 2,
+    "affected_count": 52,
+    "deviation_metric": "Sex Ratio: 320 F / 1000 M (Constituency Baseline: 860 F / 1000 M, Z = +4.8 sigma)",
+    "affected_sample_epics": [
+      "URO6512418",
+      "URO6908197",
+      "URO5643502",
+      "URO0371990",
+      "URO8724010"
+    ],
+    "primary_finding": "Severe sex ratio skew in Section 2, Part 9: 52 exclusively male electors injected.",
+    "innocent_explanations": [
+      "Construction worker temporary camp setup for metro/highway infrastructure",
+      "Industrial factory single-male workforce housing unit"
+    ],
+    "confidence_score": 0.9493
+  },
+  {
+    "scenario_id": "ANOM-CAT5-RATIO-06",
+    "category": "SEX_RATIO_DISTORTION",
+    "severity": "HIGH",
+    "ac_no": 58,
+    "part_no": 1,
+    "section_no": 2,
+    "affected_count": 48,
+    "deviation_metric": "Sex Ratio: 320 F / 1000 M (Constituency Baseline: 860 F / 1000 M, Z = +4.8 sigma)",
+    "affected_sample_epics": [
+      "URO1528547",
+      "URO5061853",
+      "URO0329633",
+      "URO2742318",
+      "URO6178932"
+    ],
+    "primary_finding": "Severe sex ratio skew in Section 2, Part 1: 48 exclusively male electors injected.",
+    "innocent_explanations": [
+      "Construction worker temporary camp setup for metro/highway infrastructure",
+      "Industrial factory single-male workforce housing unit"
+    ],
+    "confidence_score": 0.9215
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "total_voters_audited": 15308,
+  "audit_execution_seconds": 0.84,
+  "planted_anomalies": 40,
+  "true_positives_detected": 40,
+  "false_positives": 8,
+  "false_negatives_missed": 0,
+  "precision_pct": 83.33,
+  "recall_pct": 100.0,
+  "f1_score": 90.91,
+  "category_breakdown": {
+    "BULK_DELETION": {
+      "planted": 10,
+      "detected": 10
+    },
+    "HOUSE_OVERCROWDING": {
+      "planted": 10,
+      "detected": 10
+    },
+    "DUPLICATE_EPIC": {
+      "planted": 8,
+      "detected": 8
+    },
+    "AGE_DISCREPANCY": {
+      "planted": 6,
+      "detected": 6
+    },
+    "SEX_RATIO_DISTORTION": {
+      "planted": 6,
+      "detected": 6
+    }
+  }
+}
