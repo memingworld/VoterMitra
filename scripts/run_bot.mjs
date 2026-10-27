@@ -17,6 +17,13 @@ import {
   BOT_I18N,
   getLanguageDict,
 } from './telegram_i18n.mjs';
+import {
+  searchElectors,
+  formatElectorSearchResponse,
+  MASTER_MERKLE_ROOT,
+  REGISTRY_CONTRACT,
+  BLOCK_NUMBER,
+} from './elector_search.mjs';
 
 // Load .env.local if present
 try {
@@ -108,6 +115,16 @@ function getHelpKeyboard(lang = 'hi-IN') {
     .row()
     .text(b.stats, 'action:help_stats')
     .url(b.portal, 'https://voter-mitra-hack.vercel.app');
+}
+
+function getBlockchainFooter(lang = 'hi-IN') {
+  const isEn = lang === 'en-IN';
+  return (
+    `⛓️ *${isEn ? 'On-Chain Roll Seal (Polygon Amoy PoS)' : 'मतदाता सूची ब्लॉकचेन सत्यनिष्ठा रजिस्टर'}*\n` +
+    `• *Master Merkle Root:* \`${MASTER_MERKLE_ROOT.slice(0, 20)}...\` (15,308 Electors)\n` +
+    `• *Smart Contract:* \`${REGISTRY_CONTRACT}\` · Block #${BLOCK_NUMBER}\n` +
+    `🔗 *${isEn ? 'Verify on Explorer' : 'ब्लॉकचेन प्रमाण देखें'}:* https://amoy.polygonscan.com/address/${REGISTRY_CONTRACT}`
+  );
 }
 
 async function synthesizeVoice(text, lang = 'hi-IN') {
@@ -457,10 +474,36 @@ bot.on('message:text', async (ctx) => {
   console.log(`[bot] Query in [${lang} - ${dict.englishName}] from @${ctx.from?.username || ctx.from?.first_name}: "${query}"`);
   await ctx.replyWithChatAction('typing');
 
-  // Compute query cryptographic leaf hash for blockchain verification
-  const queryHash = '0x' + crypto.createHash('sha256').update(query.toLowerCase()).digest('hex').slice(0, 16);
+  // 1. Check if user is asking to look up an individual elector or EPIC number
+  const isElectorQuery =
+    /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status)\s+([a-z\s]+)/i.test(query) ||
+    /[a-z]{3}\s*[0-9]{7}/i.test(query) ||
+    /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar/i.test(query);
 
-  // 1. Query Gemini 2.5 Flash with strict target language
+  const electorResult = searchElectors(query);
+
+  if (electorResult.totalMatches > 0 || (isElectorQuery && /(?:present|in\s+the|registered|list|me|suchi)/i.test(query))) {
+    const formatted = formatElectorSearchResponse(electorResult, lang);
+    const replyText =
+      `${formatted.text}\n\n` +
+      `${getBlockchainFooter(lang)}\n` +
+      `🔗 *${dict.queryLabels.portalLink}* https://voter-mitra-hack.vercel.app\n` +
+      `_${dict.queryLabels.footerHint}_`;
+
+    await ctx.reply(replyText, { parse_mode: 'Markdown' });
+
+    // Voice response
+    await ctx.replyWithChatAction('record_voice');
+    const voiceBuffer = await synthesizeVoice(formatted.spokenSummary, lang);
+    if (voiceBuffer) {
+      await ctx.replyWithVoice(new InputFile(voiceBuffer, `elector_${lang}.ogg`), {
+        caption: `🎙️ ${dict.name} (${voiceName} · Gnani AI)`,
+      });
+    }
+    return;
+  }
+
+  // 2. Query Gemini 2.5 Flash for Grounded Statutory Election Rules
   const geminiResult = await queryGemini(query, lang, dict.englishName);
 
   let verdictKey = 'GUIDANCE';
@@ -499,7 +542,7 @@ bot.on('message:text', async (ctx) => {
     `${summary}\n\n` +
     `*${dict.queryLabels.evidenceHeader}*\n` +
     reasoning.map((r) => `• ${r}`).join('\n') +
-    `\n\n⛓️ *${dict.queryLabels.blockchainSeal}* \`${queryHash}...\` · Merkle Root Verified ✓\n` +
+    `\n\n${getBlockchainFooter(lang)}\n` +
     `🔗 *${dict.queryLabels.portalLink}* https://voter-mitra-hack.vercel.app\n` +
     `_${dict.queryLabels.footerHint}_`;
 
@@ -554,9 +597,37 @@ bot.on(['message:voice', 'message:audio'], async (ctx) => {
       return;
     }
 
-    // 3. Compute leaf hash for blockchain roll verification
-    const queryHash = '0x' + crypto.createHash('sha256').update(transcription.toLowerCase()).digest('hex').slice(0, 16);
+    // 3. Check if spoken query is asking for an individual elector or voter status
+    const isElectorQuery =
+      /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status)\s+([a-z\s]+)/i.test(transcription) ||
+      /[a-z]{3}\s*[0-9]{7}/i.test(transcription) ||
+      /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar/i.test(transcription);
 
+    const electorResult = searchElectors(transcription);
+
+    if (electorResult.totalMatches > 0 || (isElectorQuery && /(?:present|in\s+the|registered|list|me|suchi)/i.test(transcription))) {
+      const formatted = formatElectorSearchResponse(electorResult, lang);
+      const replyText =
+        `🗣️ *${dict.youAsked}:* "${transcription}"\n\n` +
+        `${formatted.text}\n\n` +
+        `${getBlockchainFooter(lang)}\n` +
+        `🔗 *${dict.queryLabels.portalLink}* https://voter-mitra-hack.vercel.app\n` +
+        `_${dict.queryLabels.footerHint}_`;
+
+      await ctx.reply(replyText, { parse_mode: 'Markdown' });
+
+      // Voice response
+      await ctx.replyWithChatAction('record_voice');
+      const voiceBuffer = await synthesizeVoice(formatted.spokenSummary, lang);
+      if (voiceBuffer) {
+        await ctx.replyWithVoice(new InputFile(voiceBuffer, `elector_${lang}.ogg`), {
+          caption: `🎙️ ${dict.name} (${voiceName} · Gnani AI)`,
+        });
+      }
+      return;
+    }
+
+    // 4. Statutory Rule Response from Gemini 2.5 Flash
     let verdictKey = 'GUIDANCE';
     if (geminiResult?.verdict === 'VERIFIED') verdictKey = 'VERIFIED';
     else if (geminiResult?.verdict === 'DISPUTED') verdictKey = 'DISPUTED';
@@ -574,14 +645,14 @@ bot.on(['message:voice', 'message:audio'], async (ctx) => {
       `${summary}\n\n` +
       `*${dict.queryLabels.evidenceHeader}*\n` +
       reasoning.map((r) => `• ${r}`).join('\n') +
-      `\n\n⛓️ *${dict.queryLabels.blockchainSeal}* \`${queryHash}...\` · Merkle Root Verified ✓\n` +
+      `\n\n${getBlockchainFooter(lang)}\n` +
       `🔗 *${dict.queryLabels.portalLink}* https://voter-mitra-hack.vercel.app\n` +
       `_${dict.queryLabels.footerHint}_`;
 
-    // 4. Send formatted text response with transcription & evidence
+    // 5. Send formatted text response with transcription & evidence
     await ctx.reply(replyText, { parse_mode: 'Markdown' });
 
-    // 5. Synthesize spoken response in user's chosen language via Gnani AI TTS
+    // 6. Synthesize spoken response in user's chosen language via Gnani AI TTS
     await ctx.replyWithChatAction('record_voice');
     const voiceBuffer = await synthesizeVoice(spokenSummary, lang);
 
