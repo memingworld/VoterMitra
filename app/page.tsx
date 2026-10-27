@@ -4,10 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { GovHeader } from '@/components/gov-header';
 import { ClaimChecker } from '@/components/claim-checker';
-import { type LanguageCode } from '@/lib/languages';
+import { I18N_DICTIONARY, type LanguageCode } from '@/lib/languages';
 
 export default function HomePage() {
   const [lang, setLang] = useState<LanguageCode>('hi-IN');
+  const t = I18N_DICTIONARY[lang] || I18N_DICTIONARY['hi-IN'];
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-900 flex flex-col font-sans">
@@ -18,10 +19,10 @@ export default function HomePage() {
       <div className="bg-[#FFF8E7] border-b border-[#F2DCA8] px-4 py-2 text-xs text-[#8A4B08] font-medium flex items-center justify-between shadow-xs">
         <div className="mx-auto max-w-6xl w-full flex items-center gap-2 overflow-hidden">
           <span className="flex-shrink-0 inline-flex items-center gap-1 rounded bg-[#E65100] text-white px-2 py-0.5 font-bold uppercase tracking-wider text-[10px]">
-            <span>📢</span> आधिकारिक सूचना
+            <span>📢</span> {lang === 'en-IN' ? 'Official Flash Notice' : 'आधिकारिक सूचना'}
           </span>
           <div className="truncate text-[11px] sm:text-xs">
-            राष्ट्रीय राजधानी क्षेत्र दिल्ली के प्रारूप मतदाता सूची का विस्तृत गणितीय ऑडिट पूर्ण — 15,308 मतदाताओं में 49 विसंगतियां चिह्नित | 100% रिकॉल एवं शून्य असत्य विलोपन दर सत्यापित।
+            {t.flashNotice}
           </div>
         </div>
       </div>
@@ -34,14 +35,14 @@ export default function HomePage() {
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#046A38]" />
                 <span className="text-xs font-bold text-[#046A38] uppercase tracking-wider">
-                  सत्यापित सांख्यिकीय बेंचमार्क · ECI Roll Audit
+                  {lang === 'en-IN' ? 'Verified Statistical Audit · ECI Benchmark' : 'सत्यापित सांख्यिकीय बेंचमार्क · ECI Roll Audit'}
                 </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-[#0B1E3F] mt-1 tracking-tight">
-                दिल्ली विधानसभा निर्वाचन नामावली सत्यापन
+                {t.benchmarkTitle}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-                4 प्रमुख विधानसभा क्षेत्रों (AC 6 रिठाला, AC 13 रोहिणी, AC 44 आर.के. पुरम, AC 58 लक्ष्मी नगर) के प्रारूप व अंतिम रोल का रोबस्ट Z-स्कोर एवं फजी-मैचिंग ऑडिट।
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                {t.benchmarkSub}
               </p>
             </div>
 
@@ -49,19 +50,19 @@ export default function HomePage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-lg text-center shadow-xs">
                 <div className="text-xl sm:text-2xl font-black text-[#0B1E3F] tabular-nums">15,308</div>
-                <div className="text-[10px] text-slate-600 font-bold uppercase tracking-wider mt-0.5">मतदाता ऑडिटेड</div>
+                <div className="text-[10px] text-slate-600 font-bold uppercase tracking-wider mt-0.5">{t.metricAudited}</div>
               </div>
               <div className="bg-[#F8FAFC] border border-slate-200 p-3 rounded-lg text-center shadow-xs">
                 <div className="text-xl sm:text-2xl font-black text-[#0B1E3F] tabular-nums">23</div>
-                <div className="text-[10px] text-slate-600 font-bold uppercase tracking-wider mt-0.5">मतदान केंद्र (Booths)</div>
+                <div className="text-[10px] text-slate-600 font-bold uppercase tracking-wider mt-0.5">{t.metricBooths}</div>
               </div>
               <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg text-center shadow-xs">
                 <div className="text-xl sm:text-2xl font-black text-emerald-800 tabular-nums">40 / 40</div>
-                <div className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider mt-0.5">100% रिकॉल (Caught)</div>
+                <div className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider mt-0.5">{t.metricRecall}</div>
               </div>
               <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-center shadow-xs">
                 <div className="text-xl sm:text-2xl font-black text-[#E65100] tabular-nums">0.84s</div>
-                <div className="text-[10px] text-amber-800 font-bold uppercase tracking-wider mt-0.5">ऑडिट इंजन गति</div>
+                <div className="text-[10px] text-amber-800 font-bold uppercase tracking-wider mt-0.5">{t.metricSpeed}</div>
               </div>
             </div>
           </div>
@@ -79,12 +80,12 @@ export default function HomePage() {
             className="group block rounded-xl border border-slate-200 bg-white p-5 shadow-xs hover:border-[#0A194E] hover:shadow-md transition"
           >
             <div className="flex items-center justify-between text-xs font-bold text-[#0A194E] uppercase tracking-wider">
-              <span>🏛️ प्रशासनिक कक्ष</span>
+              <span>🏛️ {lang === 'en-IN' ? 'Executive Wing' : 'प्रशासनिक कक्ष'}</span>
               <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform">→</span>
             </div>
-            <h3 className="mt-2 text-base font-bold text-slate-900">ऑडिट डैशबोर्ड (Executive Console)</h3>
+            <h3 className="mt-2 text-base font-bold text-slate-900">{t.cardConsoleTitle}</h3>
             <p className="mt-1 text-xs text-slate-600 leading-relaxed">
-              रोबस्ट मोडिफाइड Z-स्कोर, जनसांख्यिकीय विचलन एवं परिशुद्धता-रिकॉल स्कोरकार्ड का अवलोकन करें।
+              {t.cardConsoleDesc}
             </p>
           </Link>
 
@@ -93,28 +94,28 @@ export default function HomePage() {
             className="group block rounded-xl border border-slate-200 bg-white p-5 shadow-xs hover:border-[#046A38] hover:shadow-md transition"
           >
             <div className="flex items-center justify-between text-xs font-bold text-[#046A38] uppercase tracking-wider">
-              <span>📋 स्थलीय सत्यापन</span>
+              <span>📋 {lang === 'en-IN' ? 'Field Verification' : 'स्थलीय सत्यापन'}</span>
               <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform">→</span>
             </div>
-            <h3 className="mt-2 text-base font-bold text-slate-900">विसंगति निवारण कतार (Review Queue)</h3>
+            <h3 className="mt-2 text-base font-bold text-slate-900">{t.cardQueueTitle}</h3>
             <p className="mt-1 text-xs text-slate-600 leading-relaxed">
-              द्वि-परिकल्पना कार्ड द्वारा संदेहास्पद विलोपनों की जांच करें और बीएलओ को स्थलीय निरीक्षण हेतु निर्देशित करें।
+              {t.cardQueueDesc}
             </p>
           </Link>
 
           <a
-            href="https://t.me/VoterMitraBot"
+            href="https://t.me/VoterMitrabot"
             target="_blank"
             rel="noreferrer"
             className="group block rounded-xl border border-amber-200 bg-amber-50/50 p-5 shadow-xs hover:border-[#FF671F] hover:shadow-md transition"
           >
             <div className="flex items-center justify-between text-xs font-bold text-[#E65100] uppercase tracking-wider">
-              <span>🤖 नागरिक वॉइस बॉट</span>
+              <span>🤖 {lang === 'en-IN' ? 'Voice Bot' : 'नागरिक वॉइस बॉट'}</span>
               <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform">↗</span>
             </div>
-            <h3 className="mt-2 text-base font-bold text-slate-900">टेलीग्राम वॉयस बॉट (Option A Active)</h3>
+            <h3 className="mt-2 text-base font-bold text-slate-900">{t.cardBotTitle}</h3>
             <p className="mt-1 text-xs text-slate-600 leading-relaxed">
-              टेलीग्राम पर सीधे बोलकर या लिखकर मतदाता सूची से जुड़े किसी भी प्रश्न की तत्काल पुष्टि प्राप्त करें।
+              {t.cardBotDesc}
             </p>
           </a>
         </div>
@@ -128,17 +129,17 @@ export default function HomePage() {
               <div className="flex items-center justify-center md:justify-start gap-2">
                 <span className="text-lg">☸</span>
                 <span className="font-bold text-white text-sm tracking-wide">
-                  भारत निर्वाचन आयोग | ELECTION COMMISSION OF INDIA
+                  {t.footerTitle}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1 max-w-xl">
-                मतदाता मित्र एक पारदर्शी एवं व्याख्यायोग्य कृत्रिम बुद्धिमत्ता आधारित चुनावी नामावली सत्यापन प्रणाली है।
+                {t.footerDesc}
               </p>
             </div>
 
             <div className="flex items-center gap-4 text-xs font-medium">
               <span className="bg-slate-800/80 px-3 py-1.5 rounded border border-slate-700 text-amber-300">
-                Gnani Vachana AI Voice Integration
+                Gnani Vachana AI Voice
               </span>
               <span className="bg-slate-800/80 px-3 py-1.5 rounded border border-slate-700 text-emerald-300">
                 10 भारतीय भाषाएं

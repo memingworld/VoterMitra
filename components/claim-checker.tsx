@@ -27,6 +27,9 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  const isRecordingRef = useRef(false);
+  const accumulatedRef = useRef('');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync external language changes
   useEffect(() => {
@@ -41,7 +44,7 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
-        recognition.continuous = false;
+        recognition.continuous = true; // Stay open until user stops
         recognition.interimResults = true;
         recognition.lang = lang;
 
@@ -51,25 +54,41 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
         };
 
         recognition.onresult = (event: any) => {
-          let currentTranscript = '';
+          let currentInterim = '';
           for (let i = event.resultIndex; i < event.results.length; ++i) {
-            currentTranscript += event.results[i][0].transcript;
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              accumulatedRef.current += (accumulatedRef.current ? ' ' : '') + transcript;
+            } else {
+              currentInterim += transcript;
+            }
           }
-          if (currentTranscript) {
-            setQuestion(currentTranscript);
+          const fullText = (accumulatedRef.current + ' ' + currentInterim).trim();
+          if (fullText) {
+            setQuestion(fullText);
           }
         };
 
         recognition.onerror = (event: any) => {
           console.warn('[speech recognition] error:', event.error);
-          setIsListening(false);
           if (event.error === 'not-allowed') {
-            setError('माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र सेटिंग्स में माइक्रोफोन की अनुमति दें या टाइप करें।');
+            isRecordingRef.current = false;
+            setIsListening(false);
+            setError('माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र में माइक्रोफोन अनुमति चालू करें।');
           }
         };
 
         recognition.onend = () => {
-          setIsListening(false);
+          // If the user hasn't clicked Stop yet, auto-restart to prevent 1-second silence drops
+          if (isRecordingRef.current) {
+            try {
+              recognition.start();
+            } catch {
+              // Ignore if already active
+            }
+          } else {
+            setIsListening(false);
+          }
         };
 
         recognitionRef.current = recognition;
@@ -77,21 +96,61 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
     }
   }, [lang]);
 
+  const startVoiceInput = () => {
+    if (!recognitionRef.current) {
+      setError('इस ब्राउज़र में लाइव वॉयस रिकॉग्निशन समर्थित नहीं है। कृपया लिखकर प्रश्न पूछें।');
+      return;
+    }
+
+    isRecordingRef.current = true;
+    accumulatedRef.current = '';
+    setQuestion('');
+    setError(null);
+    setIsListening(true);
+
+    try {
+      recognitionRef.current.lang = lang;
+      recognitionRef.current.start();
+    } catch {
+      // In case already listening
+    }
+
+    // Auto-stop safety timeout after 15 seconds
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      if (isRecordingRef.current) {
+        stopVoiceInput();
+      }
+    }, 15000);
+  };
+
+  const stopVoiceInput = () => {
+    isRecordingRef.current = false;
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // Ignore
+      }
+    }
+    setIsListening(false);
+
+    // If text was spoken, automatically trigger verification
+    setTimeout(() => {
+      const textToVerify = (accumulatedRef.current || question).trim();
+      if (textToVerify.length >= 2) {
+        handleVerify(textToVerify);
+      }
+    }, 300);
+  };
+
   const toggleVoiceInput = () => {
     if (isListening) {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      setIsListening(false);
+      stopVoiceInput();
     } else {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.lang = lang;
-          recognitionRef.current.start();
-        } catch {
-          // In case already started
-        }
-      } else {
-        setError('इस ब्राउज़र में लाइव वॉयस रिकॉग्निशन समर्थित नहीं है। कृपया लिखकर प्रश्न पूछें।');
-      }
+      startVoiceInput();
     }
   };
 
@@ -258,10 +317,18 @@ export function ClaimChecker({ currentLang = 'hi-IN', onLanguageChange }: ClaimC
 
             {/* Listening Banner */}
             {isListening && (
-              <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-300 p-2 text-xs text-amber-900 font-medium animate-pulse">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
-                <span>{t.btnListening}</span>
-                <span className="text-[11px] text-amber-700 ml-auto">Gnani Vachana AI Voice Engine</span>
+              <div className="flex items-center justify-between rounded-lg bg-amber-50 border-2 border-amber-400 p-3 text-xs text-amber-950 font-bold animate-pulse">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-red-600 animate-ping" />
+                  <span>🎤 {t.btnListening}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={stopVoiceInput}
+                  className="rounded bg-[#E65100] hover:bg-[#FF671F] text-white px-2.5 py-1 text-[11px] font-bold shadow-xs transition"
+                >
+                  रोकें एवं जांचें (Done & Verify)
+                </button>
               </div>
             )}
 

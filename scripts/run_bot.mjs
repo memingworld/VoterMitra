@@ -25,16 +25,14 @@ try {
   // Ignore
 }
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
+const token = process.env.TELEGRAM_BOT_TOKEN || '8804018257:AAH2Tr5pdTCFPsYp4ED37a96hn1GAOJzqcQ';
 const gnaniKey = process.env.GNANI_API_KEY || 'vach_1ytE2CY5X2PYD6s8X2WqkQA0XcQ9nnhK9s22HqnGEX4cAP4BuJU4cSItHkGsatGL7pET6V5TklSSOcZ4e6Arlg48hjtoeXKK_7cbbc9519c3647ec3e7c71079c68e537';
 
-if (!token) {
-  console.error('\n❌ Error: TELEGRAM_BOT_TOKEN is not set in environment or .env.local');
-  console.log('👉 Please set TELEGRAM_BOT_TOKEN in .env.local to run the Telegram Bot.\n');
-  process.exit(1);
-}
-
 const bot = new Bot(token);
+
+bot.catch((err) => {
+  console.error('[bot error]', err);
+});
 
 // Voice map
 const VOICE_MAP = {
@@ -66,7 +64,7 @@ async function synthesizeVoice(text, lang = 'hi-IN') {
         language: lang,
         speed: 1.0,
         audio_config: {
-          encoding: 'opus',
+          encoding: 'oggopus',
           container: 'ogg',
           num_channels: 1,
           sample_rate: 48000,
@@ -78,6 +76,9 @@ async function synthesizeVoice(text, lang = 'hi-IN') {
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
       return Buffer.from(arrayBuffer);
+    } else {
+      const errTxt = await res.text();
+      console.warn('[bot] Gnani TTS returned non-200:', errTxt);
     }
   } catch (err) {
     console.warn('[bot] Gnani TTS call warning:', err.message);
@@ -186,7 +187,7 @@ console.log('====================================================');
 console.log('🤖 VoterMitra Telegram Bot (Option A: Local Polling)');
 console.log('====================================================');
 console.log('🟢 Bot connected to Telegram servers.');
-console.log('🟢 Polling loop active. Send /start or any claim to your bot.');
+console.log('🟢 Polling loop active. Send /start or any claim to @VoterMitrabot.');
 console.log('====================================================\n');
 
 bot.start();
