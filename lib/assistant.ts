@@ -53,13 +53,14 @@ export async function answerQuestion(
 
   // 0. Elector & Voter ID Search Priority
   const isElectorQuery =
-    /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status)\s+([a-z\s]+)/i.test(question) ||
+    /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status|क्या|नाम|सूची|मतदाता)\s+/iu.test(question) ||
     /[a-z]{3}\s*[0-9]{7}/i.test(question) ||
-    /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar/i.test(question);
+    /dl\/[0-9]{2}\/[0-9]{3}\/[0-9]+/i.test(question) ||
+    /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar|जिंदल|शर्मा|कुमार|सिंह|वर्मा|देवी/iu.test(question);
 
   if (isElectorQuery) {
     const searchResult = await searchElectorInDatabase(question);
-    if (searchResult.totalMatches > 0 || /(?:present|in\s+the|registered|list|me|suchi)/i.test(question)) {
+    if (searchResult.totalMatches > 0 || /(?:present|in\s+the|registered|list|me|suchi|में|सूची|दर्ज)/iu.test(question)) {
       const formatted = formatElectorSearchResponse(searchResult, lang);
       return {
         verdict: searchResult.totalMatches > 0 ? 'VERIFIED' : 'NOT_PROVABLE',

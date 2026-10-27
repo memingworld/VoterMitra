@@ -476,13 +476,14 @@ bot.on('message:text', async (ctx) => {
 
   // 1. Check if user is asking to look up an individual elector or EPIC number
   const isElectorQuery =
-    /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status)\s+([a-z\s]+)/i.test(query) ||
+    /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status|क्या|नाम|सूची|मतदाता)\s+/iu.test(query) ||
     /[a-z]{3}\s*[0-9]{7}/i.test(query) ||
-    /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar/i.test(query);
+    /dl\/[0-9]{2}\/[0-9]{3}\/[0-9]+/i.test(query) ||
+    /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar|जिंदल|शर्मा|कुमार|सिंह|वर्मा|देवी/iu.test(query);
 
   const electorResult = searchElectors(query);
 
-  if (electorResult.totalMatches > 0 || (isElectorQuery && /(?:present|in\s+the|registered|list|me|suchi)/i.test(query))) {
+  if (electorResult.totalMatches > 0 || (isElectorQuery && /(?:present|in\s+the|registered|list|me|suchi|में|सूची|दर्ज)/iu.test(query))) {
     const formatted = formatElectorSearchResponse(electorResult, lang);
     const replyText =
       `${formatted.text}\n\n` +
@@ -599,13 +600,14 @@ bot.on(['message:voice', 'message:audio'], async (ctx) => {
 
     // 3. Check if spoken query is asking for an individual elector or voter status
     const isElectorQuery =
-      /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status)\s+([a-z\s]+)/i.test(transcription) ||
+      /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status|क्या|नाम|सूची|मतदाता)\s+/iu.test(transcription) ||
       /[a-z]{3}\s*[0-9]{7}/i.test(transcription) ||
-      /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar/i.test(transcription);
+      /dl\/[0-9]{2}\/[0-9]{3}\/[0-9]+/i.test(transcription) ||
+      /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar|जिंदल|शर्मा|कुमार|सिंह|वर्मा|देवी/iu.test(transcription);
 
     const electorResult = searchElectors(transcription);
 
-    if (electorResult.totalMatches > 0 || (isElectorQuery && /(?:present|in\s+the|registered|list|me|suchi)/i.test(transcription))) {
+    if (electorResult.totalMatches > 0 || (isElectorQuery && /(?:present|in\s+the|registered|list|me|suchi|में|सूची|दर्ज)/iu.test(transcription))) {
       const formatted = formatElectorSearchResponse(electorResult, lang);
       const replyText =
         `🗣️ *${dict.youAsked}:* "${transcription}"\n\n` +

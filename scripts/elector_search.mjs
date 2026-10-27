@@ -58,6 +58,7 @@ export const AUDITED_ELECTORS = [
     status: 'ACTIVE_FINAL_ROLL',
     inDraftRoll: true,
     inFinalRoll: true,
+    nameAlt: ['yuv', 'jindal', 'युव', 'जिंदल', 'युव जिंदल'],
   },
   {
     epicNo: 'NLN2660207',
@@ -78,6 +79,7 @@ export const AUDITED_ELECTORS = [
     inDraftRoll: true,
     inFinalRoll: false,
     anomalyFlag: 'Part 4 targeted deletion (+4.9 sigma anomaly). Notice required under Rule 21A.',
+    nameAlt: ['pooja', 'verma', 'पूजा', 'वर्मा', 'पूजा वर्मा'],
   },
   {
     epicNo: 'NLN2234218',
@@ -98,6 +100,7 @@ export const AUDITED_ELECTORS = [
     inDraftRoll: true,
     inFinalRoll: false,
     anomalyFlag: 'Part 4 targeted deletion (+4.9 sigma anomaly). Notice required under Rule 21A.',
+    nameAlt: ['neha', 'sharma', 'नेहा', 'शर्मा', 'नेहा शर्मा'],
   },
   {
     epicNo: 'NLN2268935',
@@ -118,6 +121,7 @@ export const AUDITED_ELECTORS = [
     inDraftRoll: true,
     inFinalRoll: false,
     anomalyFlag: 'Part 4 targeted deletion (+4.9 sigma anomaly). Notice required under Rule 21A.',
+    nameAlt: ['priya', 'singh', 'प्रिया', 'सिंह', 'प्रिया सिंह'],
   },
   {
     epicNo: 'AFQ1658946',
@@ -138,6 +142,7 @@ export const AUDITED_ELECTORS = [
     inDraftRoll: true,
     inFinalRoll: true,
     anomalyFlag: 'Suspected duplicate entry found with identical name and relation in AC 13 Rohini Part 1.',
+    nameAlt: ['amit', 'kumar', 'अमित', 'कुमार', 'अमित कुमार'],
   },
   {
     epicNo: 'DL/01/013/004120',
@@ -158,6 +163,7 @@ export const AUDITED_ELECTORS = [
     inDraftRoll: true,
     inFinalRoll: true,
     anomalyFlag: 'Suspected cross-AC duplicate with AC 6 Rithala Part 2.',
+    nameAlt: ['amit', 'kumar', 'अमित', 'कुमार', 'अमित कुमार'],
   },
   {
     epicNo: 'AFQ1807568',
@@ -177,6 +183,7 @@ export const AUDITED_ELECTORS = [
     status: 'ACTIVE_FINAL_ROLL',
     inDraftRoll: true,
     inFinalRoll: true,
+    nameAlt: ['sunita', 'devi', 'सुनीता', 'देवी', 'सुनीता देवी'],
   },
   {
     epicNo: 'IPS3163383',
@@ -197,6 +204,7 @@ export const AUDITED_ELECTORS = [
     inDraftRoll: true,
     inFinalRoll: true,
     anomalyFlag: 'Registered at Plot 12-B (Address Overcrowding cluster of 43 voters, marked for PG verification).',
+    nameAlt: ['ramesh', 'kumar', 'रमेश', 'कुमार', 'रमेश कुमार'],
   },
   {
     epicNo: 'NLN2635597',
@@ -216,6 +224,7 @@ export const AUDITED_ELECTORS = [
     status: 'ACTIVE_FINAL_ROLL',
     inDraftRoll: true,
     inFinalRoll: true,
+    nameAlt: ['soham', 'panwar', 'सोहम', 'पंवर', 'पंवार', 'सोहम पंवार'],
   },
   {
     epicNo: 'CTC0515080',
@@ -235,8 +244,35 @@ export const AUDITED_ELECTORS = [
     status: 'ACTIVE_FINAL_ROLL',
     inDraftRoll: true,
     inFinalRoll: true,
+    nameAlt: ['poonam', 'chandhok', 'पूनम', 'चांधोक', 'चांदोक', 'पूनम चांदोक'],
   },
 ];
+
+// Multilingual stopwords to strip query phrasing while keeping elector names
+const STOPWORDS = new Set([
+  // English
+  'is', 'are', 'was', 'were', 'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'if',
+  'present', 'registered', 'registration', 'record', 'records', 'details', 'detail',
+  'list', 'roll', 'electoral', 'elector', 'voter', 'voters', 'name', 'status', 'check',
+  'search', 'find', 'lookup', 'look', 'verify', 'verification', 'please', 'can', 'you',
+  'tell', 'me', 'whether', 'show', 'duplicate', 'deleted', 'deletion',
+  // Hindi / Hinglish / Urdu
+  'kya', 'hai', 'hain', 'ka', 'ki', 'ke', 'ko', 'se', 'me', 'mein', 'par', 'naam', 'suchi',
+  'suchi', 'suchii', 'suchiya', 'matdata', 'chunaav', 'ya', 'nahi', 'nahin', 'batao', 'dekho',
+  'check', 'karo', 'darj', 'hoga', 'hogi', 'kripya', 'shamil', 'vivaran', 'sthiti',
+  'क्या', 'है', 'हैं', 'का', 'की', 'के', 'को', 'से', 'में', 'पर', 'नाम', 'सूची',
+  'मतदाता', 'चुनाव', 'या', 'नहीं', 'बताओ', 'बताएं', 'देखें', 'चेक', 'करो', 'करें',
+  'दर्ज', 'कृपया', 'शामिल', 'विवरण', 'स्थिति', 'सत्यापित', 'खोजें', 'दिखाओ', 'जांच',
+  // Regional common question particles
+  'आहे', 'नाव', 'यादी', 'तपासा', 'सांगा', // Marathi
+  'আছেন', 'নাম', 'তালিকা', 'দেখুন', // Bengali
+  'உள்ளாரா', 'பெயர்', 'பட்டியல்', 'சரிபார்க்க', // Tamil
+  'ఉన్నారా', 'పేరు', 'జాబితా', 'తనిఖీ', // Telugu
+  'છે', 'નામ', 'યાદી', 'તપાસો', // Gujarati
+  'ಇದ್ದಾರೆಯೇ', 'ಹೆಸರು', 'ಪಟ್ಟಿ', 'ಪರಿಶೀಲಿಸಿ', // Kannada
+  'ഉണ്ടോ', 'പേര്', 'പട്ടിക', 'പരിശോധിക്കുക', // Malayalam
+  'ਹੈ', 'ਨਾਮ', 'ਸੂਚੀ', 'ਚੈੱਕ', 'ਕਰੋ', // Punjabi
+]);
 
 /**
  * Searches electors by name or EPIC number
@@ -248,8 +284,12 @@ export function searchElectors(queryStr) {
 
   const rawClean = queryStr.toLowerCase().trim();
 
-  // 1. Check if query is an EPIC number search (e.g. "NLN2660207", "AFQ1658946")
-  const epicMatch = rawClean.match(/[a-z]{3}\s*[0-9]{7}/i) || rawClean.match(/dl\/[0-9]{2}\/[0-9]{3}\/[0-9]+/i);
+  // 1. Check if query is an EPIC number search (e.g. "NLN2660207", "AFQ1658946", "DL/01/013/009842")
+  const epicMatch =
+    rawClean.match(/[a-z]{3}\s*[0-9]{7}/i) ||
+    rawClean.match(/dl\/[0-9]{2}\/[0-9]{3}\/[0-9]+/i) ||
+    rawClean.match(/dl\s*[0-9]{2}\s*[0-9]{3}\s*[0-9]+/i);
+
   if (epicMatch) {
     const targetEpic = epicMatch[0].replace(/\s+/g, '').toUpperCase();
     const matches = AUDITED_ELECTORS.filter((e) => e.epicNo.replace(/\s+/g, '').toUpperCase() === targetEpic);
@@ -261,25 +301,17 @@ export function searchElectors(queryStr) {
     };
   }
 
-  // 2. Extract name keywords (strip common stopwords like 'is', 'present', 'in', 'the', 'list', 'check', 'for')
-  const cleanName = rawClean
-    .replace(/\b(is|present|in|the|list|check|voter|roll|name|elector|status|for|search|kya|hai|naam|suchi|me|ya|nahi)\b/gi, '')
-    .replace(/[^\w\s]/gi, '')
-    .trim();
+  // 2. Extract name keywords preserving Unicode letters/marks (Devanagari, Bengali, Tamil, etc.)
+  const sanitized = rawClean.replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ').trim();
+  const words = sanitized.split(/\s+/).filter((w) => !STOPWORDS.has(w) && w.length > 0);
+  const cleanName = words.join(' ').trim();
 
   if (!cleanName || cleanName.length < 2) {
     return { query: queryStr, type: 'NAME', totalMatches: 0, matches: [] };
   }
 
-  // Search in audited electors
-  const nameParts = cleanName.split(/\s+/).filter(Boolean);
-  const matches = AUDITED_ELECTORS.filter((e) => {
-    // Exact or substring match on clean name
-    if (e.nameClean.includes(cleanName) || cleanName.includes(e.nameClean)) return true;
-    // Word by word match (e.g. "Yuv" and "Jindal")
-    const matchCount = nameParts.filter((part) => e.nameClean.includes(part)).length;
-    return matchCount === nameParts.length || (nameParts.length > 1 && matchCount >= nameParts.length - 1);
-  });
+  // 3. Match against audited electors
+  const matches = AUDITED_ELECTORS.filter((e) => matchElector(cleanName, words, e));
 
   return {
     query: cleanName,
@@ -287,6 +319,41 @@ export function searchElectors(queryStr) {
     totalMatches: matches.length,
     matches: matches.map(formatMatch),
   };
+}
+
+function matchElector(queryClean, nameParts, elector) {
+  const alts = (elector.nameAlt || []).map((a) => a.toLowerCase().trim());
+  const allTargets = [elector.nameClean, ...alts];
+
+  // Exact target match
+  for (const t of allTargets) {
+    if (t === queryClean) return true;
+  }
+
+  // Substring match if search phrase is at least 3 chars
+  if (queryClean.length >= 3) {
+    for (const t of allTargets) {
+      if (t.includes(queryClean) || queryClean.includes(t)) return true;
+    }
+  }
+
+  // Multi-word token matching
+  if (nameParts.length === 1) {
+    const p = nameParts[0];
+    if (p.length >= 3) {
+      return allTargets.some((t) => t.includes(p));
+    }
+  } else if (nameParts.length === 2) {
+    // Both parts must match (e.g. "Yuv" and "Jindal")
+    const matchCount = nameParts.filter((part) => allTargets.some((t) => t.includes(part))).length;
+    return matchCount === 2;
+  } else if (nameParts.length > 2) {
+    // At least length - 1 must match for 3+ word queries
+    const matchCount = nameParts.filter((part) => allTargets.some((t) => t.includes(part))).length;
+    return matchCount >= nameParts.length - 1;
+  }
+
+  return false;
 }
 
 function formatMatch(e) {
@@ -301,104 +368,306 @@ function formatMatch(e) {
   };
 }
 
+// Localized strings for Elector Verification
+const ELECTOR_I18N = {
+  'en-IN': {
+    header: (count) => `🔍 *Official Electoral Roll Verification (${count} Record${count > 1 ? 's' : ''} Found)*\n\n`,
+    notFoundHeader: `❌ *Elector Record Not Found*\n\n`,
+    notFoundBody: (q) =>
+      `No registered voter matching *"${q}"* was found in the 15,308 audited records across Delhi (AC 6 Rithala, AC 13 Rohini, AC 44 R.K. Puram, AC 58 Laxmi Nagar).\n\n` +
+      `📌 *Statutory Guidelines:*\n` +
+      `• *Form 6:* If you are an eligible citizen (Age 18+), submit Form 6 online at https://voters.eci.gov.in.\n` +
+      `• *Form 8:* If you recently shifted or need details updated, submit Form 8.\n` +
+      `• Verify your exact name spelling as per previous official roll documents.`,
+    notFoundSpoken: (q) => `No elector record for ${q} was found in the audited Delhi roll. Submit Form 6 on voters.eci.gov.in to register.`,
+    labelAc: 'Constituency',
+    labelBooth: 'Polling Station',
+    labelEpic: 'EPIC (Voter ID)',
+    labelRelative: 'Relative',
+    labelAgeGender: 'Age / Gender',
+    labelStatus: 'Roll Status',
+    years: 'yrs',
+    maskedNotice: '(Masked for privacy)',
+    statusActive: 'Active in Final Electoral Roll (No deletion or discrepancy detected)',
+    statusDeleted: (flag) => `REMOVED FROM ROLL during final revision (${flag || 'Notice required under Rule 21A'})`,
+    statusDuplicate: (flag) => `DUPLICATE ENTRY DETECTED across constituencies (${flag || 'Action under Form 8 required'})`,
+    privacyNotice: `🔒 *Privacy Notice:* Under DPDP Act & ECI guidelines, complete EPIC numbers and residential addresses are masked in public channels.`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `Found official elector record for ${name} in Assembly Constituency ${acNo} ${acName}. Status is ${status}.`,
+  },
+  'hi-IN': {
+    header: (count) => `🔍 *आधिकारिक मतदाता सूची सत्यापन (${count} रिकॉर्ड प्राप्त)*\n\n`,
+    notFoundHeader: `❌ *मतदाता रिकॉर्ड नहीं मिला (Record Not Found)*\n\n`,
+    notFoundBody: (q) =>
+      `दिल्ली के ऑडिटेड 15,308 मतदाताओं (AC 6, 13, 44, 58) में *"${q}"* से संबंधित कोई नाम दर्ज नहीं पाया गया।\n\n` +
+      `📌 *आगे क्या करें?*\n` +
+      `• *फॉर्म 6:* यदि आपकी आयु 18+ है, तो नया नाम जुड़वाने हेतु फॉर्म 6 भरें (https://voters.eci.gov.in)।\n` +
+      `• *फॉर्म 8:* यदि हाल ही में पता बदला है, तो फॉर्म 8 द्वारा स्थानांतरण आवेदन करें।\n` +
+      `• कृपया मतदाता सूची में दर्ज वर्तनी (Spelling) की पुनः जांच करें।`,
+    notFoundSpoken: (q) => `${q} का नाम मतदाता सूची में नहीं मिला। नया नाम जुड़वाने हेतु voters.eci.gov.in पर फॉर्म 6 भरें।`,
+    labelAc: 'विधानसभा',
+    labelBooth: 'मतदान केंद्र',
+    labelEpic: 'पहचान पत्र (EPIC)',
+    labelRelative: 'संबंधी',
+    labelAgeGender: 'आयु / लिंग',
+    labelStatus: 'स्थिति',
+    years: 'वर्ष',
+    maskedNotice: '(सुरक्षा हेतु आंशिक गोपनीय)',
+    statusActive: 'अंतिम निर्वाचक नामावली में सक्रिय एवं सत्यापित (कोई विसंगति नहीं)',
+    statusDeleted: (flag) => `प्रारूप सूची से अंतिम सूची में हटाया गया (${flag || 'नियम 21A के तहत चिह्नित'})`,
+    statusDuplicate: (flag) => `दोहरे पंजीकरण का संदेह (${flag || 'फॉर्म 8 द्वारा संशोधन आवश्यक'})`,
+    privacyNotice: `🔒 *गोपनीयता सूचना:* निर्वाचन आयोग एवं डिजिटल व्यक्तिगत डेटा सुरक्षा (DPDP) मानकों के तहत पहचान संख्या आंशिक गोपनीय रखी गई है।`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} का आधिकारिक रिकॉर्ड विधानसभा ${acNo} ${acName} में मिला। स्थिति: ${status}।`,
+  },
+  'mr-IN': {
+    header: (count) => `🔍 *अधिकृत मतदार यादी पडताळणी (${count} नोंदी आढळल्या)*\n\n`,
+    notFoundHeader: `❌ *मतदार नोंद आढळली नाही*\n\n`,
+    notFoundBody: (q) =>
+      `ऑडिट केलेल्या 15,308 मतदारांमध्ये *"${q}"* हे नाव आढळले नाही.\n\n` +
+      `📌 *पुढील पावले:*\n` +
+      `• *फॉर्म 6:* नवीन मतदार नोंदणीसाठी https://voters.eci.gov.in वर अर्ज करा.\n` +
+      `• *फॉर्म 8:* पत्ता बदलण्यासाठी फॉर्म 8 वापरा.`,
+    notFoundSpoken: (q) => `${q} चे नाव मतदार यादीत आढळले नाही. नवीन नोंदणीसाठी फॉर्म 6 भरा.`,
+    labelAc: 'मतदारसंघ',
+    labelBooth: 'मतदान केंद्र',
+    labelEpic: 'ओळखपत्र (EPIC)',
+    labelRelative: 'नातेवाईक',
+    labelAgeGender: 'वय / लिंग',
+    labelStatus: 'स्थिती',
+    years: 'वर्षे',
+    maskedNotice: '(सुरक्षिततेसाठी अंशतः गुप्त)',
+    statusActive: 'अंतिम मतदार यादीत सक्रिय आणि सत्यापित',
+    statusDeleted: (flag) => `अंतिम फेरबदलात वगळण्यात आले (${flag})`,
+    statusDuplicate: (flag) => `दोन मतदारसंघात नोंद आढळली (${flag})`,
+    privacyNotice: `🔒 *गोपनीयता सूचना:* DPDP कायद्यानुसार वैयक्तिक तपशील सुरक्षित ठेवण्यात आले आहेत.`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} ची अधिकृत नोंद विधानसभा ${acNo} मध्ये आढळली. स्थिती: ${status}.`,
+  },
+  'bn-IN': {
+    header: (count) => `🔍 *অফিসিয়াল ভোটার তালিকা যাচাই (${count}টি রেকর্ড পাওয়া গেছে)*\n\n`,
+    notFoundHeader: `❌ *ভোটার রেকর্ড পাওয়া যায়নি*\n\n`,
+    notFoundBody: (q) =>
+      `অডিট করা ১৫,৩০৮ জন ভোটারের মধ্যে *"${q}"* নামের কোনো তথ্য নেই।\n\n` +
+      `📌 *করণীয়:*\n` +
+      `• *ফর্ম ৬:* নতুন ভোটার তালিকায় নাম অন্তর্ভুক্ত করতে https://voters.eci.gov.in এ আবেদন করুন।\n` +
+      `• *ফর্ম ৮:* ঠিকানা পরিবর্তনের জন্য ফর্ম ৮ জমা দিন।`,
+    notFoundSpoken: (q) => `${q} এর নাম ভোটার তালিকায় নেই। নতুন ভোটার হতে ফর্ম ৬ পূরণ করুন।`,
+    labelAc: 'নির্বাচনী এলাকা',
+    labelBooth: 'ভোটকেন্দ্র',
+    labelEpic: 'ভোটার কার্ড (EPIC)',
+    labelRelative: 'অভিভাবক',
+    labelAgeGender: 'বয়স / লিঙ্গ',
+    labelStatus: 'অবস্থা',
+    years: 'বছর',
+    maskedNotice: '(সুরক্ষার জন্য গোপন)',
+    statusActive: 'চূড়ান্ত ভোটার তালিকায় সক্রিয় ও যাচাইকৃত',
+    statusDeleted: (flag) => `চূড়ান্ত তালিকায় নাম বাদ পড়েছে (${flag})`,
+    statusDuplicate: (flag) => `একাধিক নির্বাচনী এলাকায় নাম রয়েছে (${flag})`,
+    privacyNotice: `🔒 *গোপনীয়তা বিজ্ঞপ্তি:* ডিপিডিপি আইনের নির্দেশিকা অনুযায়ী ভোটার কার্ডের নম্বর সুরক্ষিত রাখা হয়েছে।`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} এর সরকারি রেকর্ড বিধানসভা ${acNo} তে পাওয়া গেছে। অবস্থা: ${status}।`,
+  },
+  'ta-IN': {
+    header: (count) => `🔍 *அதிகாரப்பூர்வ வாக்காளர் பட்டியல் சரிபார்ப்பு (${count} பதிவுகள்)*\n\n`,
+    notFoundHeader: `❌ *வாக்காளர் பதிவு கிடைக்கவில்லை*\n\n`,
+    notFoundBody: (q) =>
+      `ஆய்வு செய்யப்பட்ட 15,308 வாக்காளர்களில் *"${q}"* பெயர் காணப்படவில்லை.\n\n` +
+      `📌 *அடுத்த கட்டம்:*\n` +
+      `• *படிவம் 6:* புதிய வாக்காளர் சேர்க்கைக்கு https://voters.eci.gov.in இணையதளத்தில் விண்ணப்பிக்கவும்.\n` +
+      `• *படிவம் 8:* முகவரி மாற்றத்திற்கு படிவம் 8 சமர்ப்பிக்கவும்.`,
+    notFoundSpoken: (q) => `${q} பெயர் வாக்காளர் பட்டியலில் இல்லை. புதிய வாக்காளராக பதிவு செய்ய படிவம் 6 ஐ நிரப்பவும்.`,
+    labelAc: 'தொகுதி',
+    labelBooth: 'வாக்குச்சாவடி',
+    labelEpic: 'வாக்காளர் அட்டை (EPIC)',
+    labelRelative: 'உறவினர்',
+    labelAgeGender: 'வயது / பாலினம்',
+    labelStatus: 'நிலை',
+    years: 'வயது',
+    maskedNotice: '(பாதுகாப்பிற்காக மறைக்கப்பட்டுள்ளது)',
+    statusActive: 'இறுதி வாக்காளர் பட்டியலில் செயலில் உள்ளது',
+    statusDeleted: (flag) => `இறுதித் திருத்தத்தில் நீக்கப்பட்டது (${flag})`,
+    statusDuplicate: (flag) => `இரட்டைப் பதிவு கண்டறியப்பட்டது (${flag})`,
+    privacyNotice: `🔒 *தனியுரிமை அறிவிப்பு:* DPDP விதிகளின்படி அடையாள எண்கள் பாதுகாக்கப்பட்டுள்ளன.`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} விவரம் தொகுதி ${acNo} இல் காணப்பட்டது. நிலை: ${status}.`,
+  },
+  'te-IN': {
+    header: (count) => `🔍 *అధికారిక ఓటరు జాబితా ధృవీకరణ (${count} రికార్డులు లభించాయి)*\n\n`,
+    notFoundHeader: `❌ *ఓటరు రికార్డు కనుగొనబడలేదు*\n\n`,
+    notFoundBody: (q) =>
+      `ఆడిట్ చేయబడిన 15,308 ఓటర్లలో *"${q}"* పేరు నమోదు కాలేదు.\n\n` +
+      `📌 *తదుపరి చర్యలు:*\n` +
+      `• *ఫారమ్ 6:* కొత్త ఓటరుగా నమోదు చేసుకోవడానికి https://voters.eci.gov.in లో దరఖాస్తు చేయండి.\n` +
+      `• *ఫారమ్ 8:* చిరునామా మార్పు కొరకు ఫారమ్ 8 సమర్పించండి.`,
+    notFoundSpoken: (q) => `${q} పేరు ఓటరు జాబితాలో లేదు. కొత్త ఓటరుగా నమోదుకు ఫారమ్ 6 సమర్పించండి.`,
+    labelAc: 'నియోజకవర్గం',
+    labelBooth: 'పోలింగ్ కేంద్రం',
+    labelEpic: 'ఓటరు కార్డు (EPIC)',
+    labelRelative: 'సంబంధీకుడు',
+    labelAgeGender: 'వయస్సు / లింగం',
+    labelStatus: 'స్థితి',
+    years: 'సంవత్సరాలు',
+    maskedNotice: '(భద్రత కోసం దాచబడింది)',
+    statusActive: 'తుది ఓటరు జాబితాలో క్రియాశీలంగా ఉంది',
+    statusDeleted: (flag) => `తుది సవరణలో తొలగించబడింది (${flag})`,
+    statusDuplicate: (flag) => `రెండు నియోజకవర్గాల్లో నమోదు గుర్తించబడింది (${flag})`,
+    privacyNotice: `🔒 *గోప్యతా నోటీసు:* DPDP మార్గదర్శకాల ప్రకారం గుర్తింపు సంఖ్యలు భద్రపరచబడ్డాయి.`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} వివరాలు నియోజకవర్గం ${acNo} లో లభించాయి. స్థితి: ${status}.`,
+  },
+  'gu-IN': {
+    header: (count) => `🔍 *સત્તાવાર મતદાર યાદી ચકાસણી (${count} રેકોર્ડ મળ્યા)*\n\n`,
+    notFoundHeader: `❌ *મતદાર રેકોર્ડ મળ્યો નથી*\n\n`,
+    notFoundBody: (q) =>
+      `ઓડિટ થયેલ 15,308 મતદારોમાં *"${q}"* નામ મળ્યું નથી.\n\n` +
+      `📌 *આગળ શું કરવું:*\n` +
+      `• *ફોર્મ 6:* નવા મતદાર તરીકે નામ નોંધાવવા https://voters.eci.gov.in પર અરજી કરો.\n` +
+      `• *ફોર્મ 8:* સરનામું બદલવા માટે ફોર્મ 8 ભરો.`,
+    notFoundSpoken: (q) => `${q} નું નામ મતદાર યાદીમાં નથી. નવી નોંધણી માટે ફોર્મ 6 ભરો.`,
+    labelAc: 'મતવિસ્તાર',
+    labelBooth: 'મતદાન મથક',
+    labelEpic: 'ઓળખપત્ર (EPIC)',
+    labelRelative: 'સંબંધી',
+    labelAgeGender: 'ઉંમર / લિંગ',
+    labelStatus: 'સ્થિતિ',
+    years: 'વર્ષ',
+    maskedNotice: '(સુરક્ષા માટે ગુપ્ત)',
+    statusActive: 'આખરી મતદાર યાદીમાં સક્રિય અને ચકાસાયેલ',
+    statusDeleted: (flag) => `યાદીમાંથી નામ દૂર કરવામાં આવ્યું છે (${flag})`,
+    statusDuplicate: (flag) => `બે મતવિસ્તારમાં નોંધણીની શંકા (${flag})`,
+    privacyNotice: `🔒 *ગોપનીયતા સૂચના:* DPDP કાયદા મુજબ ઓળખ નંબર સુરક્ષિત રાખવામાં આવ્યો છે.`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} નો સત્તાવાર રેકોર્ડ વિધાનસભા ${acNo} માં મળ્યો છે. સ્થિતિ: ${status}.`,
+  },
+  'kn-IN': {
+    header: (count) => `🔍 *ಅಧಿಕೃತ ಮತದಾರರ ಪಟ್ಟಿ ಪರಿಶೀಲನೆ (${count} ದಾಖಲೆಗಳು ಲಭ್ಯ)*\n\n`,
+    notFoundHeader: `❌ *ಮತದಾರರ ದಾಖಲೆ ಕಂಡುಬಂದಿಲ್ಲ*\n\n`,
+    notFoundBody: (q) =>
+      `ಆಡಿಟ್ ಮಾಡಿದ 15,308 ಮತದಾರರಲ್ಲಿ *"${q}"* ಹೆಸರು ನೋಂದಣಿಯಾಗಿಲ್ಲ.\n\n` +
+      `📌 *ಮುಂದಿನ ಕ್ರಮ:*\n` +
+      `• *ಫಾರ್ಮ್ 6:* ಹೊಸ ಮತದಾರರಾಗಿ ನೋಂದಾಯಿಸಿಕೊಳ್ಳಲು https://voters.eci.gov.in ಗೆ ಭೇಟಿ ನೀಡಿ.\n` +
+      `• *ಫಾರ್ಮ್ 8:* ವಿಳಾಸ ಬದಲಾವಣೆಗೆ ಫಾರ್ಮ್ 8 ಸಲ್ಲಿಸಿ.`,
+    notFoundSpoken: (q) => `${q} ಹೆಸರು ಮತದಾರರ ಪಟ್ಟಿಯಲ್ಲಿಲ್ಲ. ಹೊಸ ನೋಂದಣಿಗೆ ಫಾರ್ಮ್ 6 ಸಲ್ಲಿಸಿ.`,
+    labelAc: 'ಕ್ಷೇತ್ರ',
+    labelBooth: 'ಮತಗಟ್ಟೆ',
+    labelEpic: 'ಗುರುತಿನ ಚೀಟಿ (EPIC)',
+    labelRelative: 'ಸಂಬಂಧಿ',
+    labelAgeGender: 'ವಯಸ್ಸು / ಲಿಂಗ',
+    labelStatus: 'ಸ್ಥಿತಿ',
+    years: 'ವರ್ಷ',
+    maskedNotice: '(ಗೌಪ್ಯತೆಗಾಗಿ ಮರೆಮಾಡಲಾಗಿದೆ)',
+    statusActive: 'ಅಂತಿಮ ಮತದಾರರ ಪಟ್ಟಿಯಲ್ಲಿ ಸಕ್ರಿಯವಾಗಿದೆ',
+    statusDeleted: (flag) => `ಅಂತಿಮ ಪರಿಷ್ಕರಣೆಯಲ್ಲಿ ತೆಗೆದುಹಾಕಲಾಗಿದೆ (${flag})`,
+    statusDuplicate: (flag) => `ಎರಡು ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ನಕಲಿ ದಾಖಲೆ ಶಂಕಿಸಲಾಗಿದೆ (${flag})`,
+    privacyNotice: `🔒 *ಗೌಪ್ಯತಾ ಸೂಚನೆ:* DPDP ನಿಯಮಗಳ ಅಡಿಯಲ್ಲಿ ಗುರುತಿನ ಸಂಖ್ಯೆಯನ್ನು ರಕ್ಷಿಸಲಾಗಿದೆ.`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} ಅವರ ವಿವರ ಕ್ಷೇತ್ರ ${acNo} ದಲ್ಲಿ ಲಭ್ಯವಿದೆ. ಸ್ಥಿತಿ: ${status}.`,
+  },
+  'ml-IN': {
+    header: (count) => `🔍 *ഔദ്യോഗിക വോട്ടർ പട്ടിക പരിശോധന (${count} രേഖകൾ കണ്ടെത്തി)*\n\n`,
+    notFoundHeader: `❌ *വോട്ടർ രേഖ കണ്ടെത്താനായില്ല*\n\n`,
+    notFoundBody: (q) =>
+      `ഓഡിറ്റ് ചെയ്ത 15,308 വോട്ടർമാരിൽ *"${q}"* എന്ന പേര് കണ്ടെത്തിയില്ല.\n\n` +
+      `📌 *അടുത്ത നടപടി:*\n` +
+      `• *ഫോം 6:* പുതിയ വോട്ടർ രജിസ്ട്രേഷനായി https://voters.eci.gov.in സന്ദർശിക്കുക.\n` +
+      `• *ഫോം 8:* വിലാസം മാറ്റാൻ ഫോം 8 സമർപ്പിക്കുക.`,
+    notFoundSpoken: (q) => `${q} എന്ന പേര് വോട്ടർ പട്ടികയിൽ ഇല്ല. പുതിയ രജിസ്ട്രേഷനായി ഫോം 6 പൂരിപ്പിക്കുക.`,
+    labelAc: 'മണ്ഡലം',
+    labelBooth: 'പോളിംഗ് ബൂത്ത്',
+    labelEpic: 'തിരിച്ചറിയൽ കാർഡ് (EPIC)',
+    labelRelative: 'ബന്ധു',
+    labelAgeGender: 'പ്രായം / ലിംഗഭേദം',
+    labelStatus: 'നില',
+    years: 'വയസ്സ്',
+    maskedNotice: '(സുരക്ഷയ്ക്കായി മറച്ചിരിക്കുന്നു)',
+    statusActive: 'അന്തിമ വോട്ടർ പട്ടികയിൽ സജീവമാണ്',
+    statusDeleted: (flag) => `അന്തിമ പട്ടികയിൽ നിന്ന് ഒഴിവാക്കപ്പെട്ടു (${flag})`,
+    statusDuplicate: (flag) => `ഇരട്ട രജിസ്ട്രേഷൻ കണ്ടെത്തി (${flag})`,
+    privacyNotice: `🔒 *സ്വകാര്യതാ അറിയിപ്പ്:* DPDP ചട്ടങ്ങൾ പ്രകാരം തിരിച്ചറിയൽ രേഖകൾ സുരക്ഷിതമാക്കിയിരിക്കുന്നു.`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} വിവരങ്ങൾ മണ്ഡലം ${acNo} ൽ കണ്ടെത്തി. നില: ${status}.`,
+  },
+  'pa-IN': {
+    header: (count) => `🔍 *ਅਧਿਕਾਰਤ ਵੋਟਰ ਸੂਚੀ ਤਸਦੀਕ (${count} ਰਿਕਾਰਡ ਮਿਲੇ)*\n\n`,
+    notFoundHeader: `❌ *ਵੋਟਰ ਰਿਕਾਰਡ ਨਹੀਂ ਮਿਲਿਆ*\n\n`,
+    notFoundBody: (q) =>
+      `ਆਡਿਟ ਕੀਤੇ 15,308 ਵੋਟਰਾਂ ਵਿੱਚ *"${q}"* ਦਰਜ ਨਹੀਂ ਹੈ।\n\n` +
+      `📌 *ਅਗਲਾ ਕਦਮ:*\n` +
+      `• *ਫਾਰਮ 6:* ਨਵੀਂ ਵੋਟਰ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਲਈ https://voters.eci.gov.in 'ਤੇ ਆਨਲਾਈਨ ਅਪਲਾਈ ਕਰੋ।\n` +
+      `• *ਫਾਰਮ 8:* ਪਤਾ ਬਦਲਣ ਲਈ ਫਾਰਮ 8 ਭਰੋ।`,
+    notFoundSpoken: (q) => `${q} ਦਾ ਨਾਮ ਵੋਟਰ ਸੂਚੀ ਵਿੱਚ ਨਹੀਂ ਮਿਲਿਆ। ਨਵਾਂ ਨਾਮ ਦਰਜ ਕਰਨ ਲਈ ਫਾਰਮ 6 ਭਰੋ।`,
+    labelAc: 'ਹਲਕਾ',
+    labelBooth: 'ਪੋਲਿੰਗ ਸਟੇਸ਼ਨ',
+    labelEpic: 'ਪਛਾਣ ਪੱਤਰ (EPIC)',
+    labelRelative: 'ਰਿਸ਼ਤੇਦਾਰ',
+    labelAgeGender: 'ਉਮਰ / ਲਿੰਗ',
+    labelStatus: 'ਸਥਿਤੀ',
+    years: 'ਸਾਲ',
+    maskedNotice: '(ਸੁਰੱਖਿਆ ਲਈ ਲੁਕਾਇਆ ਗਿਆ)',
+    statusActive: 'ਅੰਤਿਮ ਵੋਟਰ ਸੂਚੀ ਵਿੱਚ ਸਰਗਰਮ ਅਤੇ ਪ੍ਰਮਾਣਿਤ ਹੈ',
+    statusDeleted: (flag) => `ਅੰਤਿਮ ਸੋਧ ਵਿੱਚ ਹਟਾਇਆ ਗਿਆ (${flag})`,
+    statusDuplicate: (flag) => `ਦੋਹਰੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਦਾ ਸ਼ੱਕ (${flag})`,
+    privacyNotice: `🔒 *ਪਰਦੇਦਾਰੀ ਨੋਟਿਸ:* DPDP ਨਿਯਮਾਂ ਅਧੀਨ ਵੋਟਰ ਕਾਰਡ ਨੰਬਰ ਸੁਰੱਖਿਅਤ ਰੱਖਿਆ ਗਿਆ ਹੈ।`,
+    spokenSummary: (name, acNo, acName, status) =>
+      `${name} ਦਾ ਰਿਕਾਰਡ ਹਲਕਾ ${acNo} ਵਿੱਚ ਮਿਲਿਆ। ਸਥਿਤੀ: ${status}।`,
+  },
+};
+
 /**
  * Builds localized response for citizen elector lookup
  */
 export function formatElectorSearchResponse(searchResult, lang = 'hi-IN') {
-  const { query, type, totalMatches, matches } = searchResult;
+  const { query, totalMatches, matches } = searchResult;
+  const i18n = ELECTOR_I18N[lang] || ELECTOR_I18N['hi-IN'];
 
   if (totalMatches === 0) {
-    if (lang === 'en-IN') {
-      return {
-        found: false,
-        text:
-          `❌ *Elector Record Not Found*\n\n` +
-          `No registered voter matching *"${query}"* was found in the 15,308 audited records across Delhi (AC 6 Rithala, AC 13 Rohini, AC 44 R.K. Puram, AC 58 Laxmi Nagar).\n\n` +
-          `📌 *What should you do?*\n` +
-          `• If you are an eligible citizen (Age 18+), submit **Form 6** online at https://voters.eci.gov.in to register.\n` +
-          `• If you recently shifted, submit **Form 8** for address transfer.\n` +
-          `• Make sure your spelling matches the official electoral roll.`,
-        spokenSummary: `No elector matching ${query} was found in the audited Delhi roll. You can register using Form 6 online.`,
-      };
-    } else {
-      return {
-        found: false,
-        text:
-          `❌ *मतदाता रिकॉर्ड नहीं मिला (Record Not Found)*\n\n` +
-          `दिल्ली के ऑडिटेड 15,308 मतदाताओं (AC 6, 13, 44, 58) में *"${query}"* से संबंधित कोई नाम दर्ज नहीं पाया गया।\n\n` +
-          `📌 *आगे क्या करें?*\n` +
-          `• यदि आपकी आयु 18+ है, तो नया नाम जुड़वाने हेतु **फॉर्म 6** भरें (https://voters.eci.gov.in)।\n` +
-          `• यदि हाल ही में पता बदला है, तो **फॉर्म 8** द्वारा स्थानांतरण आवेदन करें।`,
-        spokenSummary: `${query} का नाम मतदाता सूची में नहीं मिला। नया नाम जुड़वाने हेतु फॉर्म 6 भरें।`,
-      };
-    }
+    return {
+      found: false,
+      text: i18n.notFoundHeader + i18n.notFoundBody(query),
+      spokenSummary: i18n.notFoundSpoken(query),
+    };
   }
 
-  // If matches found
-  const isEnglish = lang === 'en-IN';
   let body = '';
-  let spokenSummary = '';
-
   matches.forEach((m, idx) => {
-    let statusLabel = '';
     let statusBadge = '';
+    let statusLabel = '';
 
     if (m.status === 'ACTIVE_FINAL_ROLL') {
       statusBadge = '✅ VERIFIED ACTIVE';
-      statusLabel = isEnglish
-        ? 'Active in Final Electoral Roll (No deletion or discrepancy detected)'
-        : 'अंतिम निर्वाचक नामावली में सक्रिय एवं सत्यापित (कोई विसंगति नहीं)';
+      statusLabel = i18n.statusActive;
     } else if (m.status === 'DELETED_IN_REVISION') {
       statusBadge = '⚠️ DELETED IN REVISION';
-      statusLabel = isEnglish
-        ? `REMOVED FROM ROLL during final revision (${m.anomalyFlag || 'Marked under Rule 21A'})`
-        : `प्रारूप सूची से अंतिम सूची में हटाया गया (${m.anomalyFlag || 'नियम 21A के तहत चिह्नित'})`;
+      statusLabel = i18n.statusDeleted(m.anomalyFlag);
     } else if (m.status === 'DUPLICATE_SUSPECT') {
       statusBadge = '⚠️ DUPLICATE SUSPECT';
-      statusLabel = isEnglish
-        ? `DUPLICATE ENTRY DETECTED across constituencies (${m.anomalyFlag || 'Action under Form 8 required'})`
-        : `दोहरे पंजीकरण का संदेह (${m.anomalyFlag || 'फॉर्म 8 द्वारा संशोधन आवश्यक'})`;
+      statusLabel = i18n.statusDuplicate(m.anomalyFlag);
     }
 
-    if (isEnglish) {
-      body +=
-        `👤 *Elector ${idx + 1}: ${m.name}* [${statusBadge}]\n` +
-        `• *Constituency:* AC ${m.acNo} (${m.acName})\n` +
-        `• *Polling Station:* Part ${m.partNo} — ${m.boothName}\n` +
-        `• *EPIC (Voter ID):* \`${m.maskedEpic}\` (Masked for privacy)\n` +
-        `• *Relative:* ${m.relationType} — ${m.maskedRelation}\n` +
-        `• *Age / Gender:* ${m.age || '—'} yrs / ${m.gender}\n` +
-        `• *Roll Status:* ${statusLabel}\n\n`;
-    } else {
-      body +=
-        `👤 *मतदाता ${idx + 1}: ${m.name}* [${statusBadge}]\n` +
-        `• *विधानसभा:* AC ${m.acNo} (${m.acName})\n` +
-        `• *मतदान केंद्र:* भाग ${m.partNo} — ${m.boothName}\n` +
-        `• *पहचान पत्र (EPIC):* \`${m.maskedEpic}\` (सुरक्षा हेतु आंशिक गोपनीय)\n` +
-        `• *संबंधी:* ${m.relationType} — ${m.maskedRelation}\n` +
-        `• *आयु / लिंग:* ${m.age || '—'} वर्ष / ${m.gender}\n` +
-        `• *स्थिति:* ${statusLabel}\n\n`;
-    }
+    body +=
+      `👤 *${idx + 1}. ${m.name}* [${statusBadge}]\n` +
+      `• *${i18n.labelAc}:* AC ${m.acNo} (${m.acName})\n` +
+      `• *${i18n.labelBooth}:* Part ${m.partNo} — ${m.boothName}\n` +
+      `• *${i18n.labelEpic}:* \`${m.maskedEpic}\` ${i18n.maskedNotice}\n` +
+      `• *${i18n.labelRelative}:* ${m.relationType} — ${m.maskedRelation}\n` +
+      `• *${i18n.labelAgeGender}:* ${m.age || '—'} ${i18n.years} / ${m.gender}\n` +
+      `• *${i18n.labelStatus}:* ${statusLabel}\n\n`;
   });
 
   const first = matches[0];
-  if (isEnglish) {
-    spokenSummary = `Found elector record for ${first.name} in AC ${first.acNo} ${first.acName}. Status is ${first.status === 'ACTIVE_FINAL_ROLL' ? 'Active and Verified' : 'flagged for revision check'}.`;
-  } else {
-    spokenSummary = `${first.name} का रिकॉर्ड AC ${first.acNo} ${first.acName} में मिला। स्थिति: ${first.status === 'ACTIVE_FINAL_ROLL' ? 'अंतिम सूची में सक्रिय' : 'पुनरीक्षण जांच में चिह्नित'}।`;
-  }
+  const shortStatus =
+    first.status === 'ACTIVE_FINAL_ROLL'
+      ? (lang === 'en-IN' ? 'Active in Final Roll' : 'अंतिम सूची में सक्रिय एवं सत्यापित')
+      : first.status === 'DELETED_IN_REVISION'
+      ? (lang === 'en-IN' ? 'Deleted in Revision Anomaly' : 'पुनरीक्षण में विलोपित (जांच आवश्यक)')
+      : (lang === 'en-IN' ? 'Suspected Duplicate Registration' : 'दोहरा पंजीकरण संदिग्ध');
 
-  const header = isEnglish
-    ? `🔍 *Official Electoral Roll Verification (${totalMatches} Record${totalMatches > 1 ? 's' : ''} Found)*\n\n`
-    : `🔍 *आधिकारिक मतदाता सूची सत्यापन (${totalMatches} रिकॉर्ड प्राप्त)*\n\n`;
-
-  const privacyNote = isEnglish
-    ? `🔒 *Privacy Notice:* As per Election Commission & DPDP Act standards, complete EPIC and house numbers are masked in public channels.`
-    : `🔒 *गोपनीयता सूचना:* निर्वाचन आयोग एवं डिजिटल व्यक्तिगत डेटा सुरक्षा मानकों के तहत पहचान संख्या आंशिक गोपनीय रखी गई है।`;
+  const spokenSummary = i18n.spokenSummary(first.name, first.acNo, first.acName, shortStatus);
 
   return {
     found: true,
-    text: header + body + privacyNote,
+    text: i18n.header(totalMatches) + body + i18n.privacyNotice,
     spokenSummary,
   };
 }
