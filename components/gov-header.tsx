@@ -203,7 +203,7 @@ export function GovHeader({ currentLang, onLanguageChange }: GovHeaderProps) {
 
           <div className="flex items-center pl-2">
             <a
-              href="https://t.me/VoterMitraBot"
+              href="https://t.me/VoterMitrabot"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded bg-[#FF671F] px-3 py-1 text-xs font-bold text-white shadow-xs hover:bg-[#E65100] transition whitespace-nowrap"

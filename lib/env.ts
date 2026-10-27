@@ -15,13 +15,13 @@ export const EnvSchema = z.object({
   // Telegram Bot
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_SECRET_TOKEN: z.string().optional(),
-  TELEGRAM_BOT_USERNAME: z.string().default('VoterMitraBot'),
+  TELEGRAM_BOT_USERNAME: z.string().default('VoterMitrabot'),
 
   // Application & Session Security
   DEV_ROUTES_SECRET: z.string().default('votermitra-dev-secret'),
   SESSION_SECRET: z.string().default('votermitra-super-secret-session-key-32chars'),
   BENCHMARK_PLANTED_TOTAL: z.coerce.number().int().default(40),
-  PUBLIC_BASE_URL: z.string().default('https://votermitra-hack.vercel.app'),
+  PUBLIC_BASE_URL: z.string().default('https://voter-mitra-hack.vercel.app'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -41,11 +41,11 @@ export function env(): Env {
       GNANI_API_KEY: process.env.GNANI_API_KEY,
       TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
       TELEGRAM_SECRET_TOKEN: process.env.TELEGRAM_SECRET_TOKEN,
-      TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || 'VoterMitraBot',
+      TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || 'VoterMitrabot',
       DEV_ROUTES_SECRET: process.env.DEV_ROUTES_SECRET || 'votermitra-dev-secret',
       SESSION_SECRET: process.env.SESSION_SECRET || 'votermitra-super-secret-session-key-32chars',
       BENCHMARK_PLANTED_TOTAL: Number(process.env.BENCHMARK_PLANTED_TOTAL) || 40,
-      PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL || 'https://votermitra-hack.vercel.app',
+      PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL || 'https://voter-mitra-hack.vercel.app',
     };
   }
 
