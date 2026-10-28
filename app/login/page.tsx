@@ -9,8 +9,8 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(login, {});
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-[#FDFBF7]">
-      <div className="w-full max-w-md rounded-2xl border-2 border-slate-200 bg-white shadow-xl overflow-hidden">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-[#F8FAFC]">
+      <div className="w-full max-w-md rounded-lg border border-slate-300 bg-white shadow-2xs overflow-hidden">
         {/* Tricolor Ribbon */}
         <div className="h-1.5 w-full flex">
           <div className="flex-1 bg-[#FF671F]" />
@@ -19,19 +19,22 @@ export default function LoginPage() {
         </div>
 
         <div className="p-6 sm:p-8">
-          <div className="text-center pb-5 border-b border-slate-100">
-            <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-tr from-[#002147] to-[#0A194E] flex items-center justify-center text-white ring-2 ring-amber-500/40 text-xl font-mono shadow-md">
-              ☸
+          <div className="text-center pb-5 border-b border-slate-200">
+            <div className="mx-auto w-12 h-12 rounded-lg bg-[#0F2C59] flex items-center justify-center text-white text-xl font-serif shadow-2xs">
+              ⚖
             </div>
-            <h1 className="text-lg font-bold text-[#0B1E3F] mt-3 tracking-tight">
+            <h1 className="text-base sm:text-lg font-black text-[#0F2C59] mt-3 tracking-tight">
               भारत निर्वाचन आयोग
             </h1>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               ELECTION COMMISSION OF INDIA
             </div>
-            <div className="text-xs font-bold text-[#E65100] mt-1">
-              मतदाता मित्र — निर्वाचन अधिकारी नियंत्रण कक्ष
+            <div className="text-xs font-bold text-[#D97706] mt-1">
+              मतदाता मित्र : निर्वाचन अधिकारी नियंत्रण कक्ष
             </div>
+            <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+              ERO &amp; Field Auditor Statutory Review Console (Restricted Access)
+            </p>
           </div>
 
           <form action={formAction} className="mt-6 space-y-4">
@@ -42,7 +45,7 @@ export default function LoginPage() {
                 required
                 defaultValue="Electoral Registration Officer"
                 placeholder="उदा. राजेश कुमार"
-                className="mt-1 w-full rounded-lg border-2 border-slate-300 bg-slate-50 p-2.5 text-xs font-semibold text-slate-900 focus:border-[#0A194E] focus:bg-white focus:outline-none transition shadow-inner"
+                className="mt-1 w-full rounded border border-slate-300 bg-white p-2.5 text-xs font-semibold text-slate-900 focus:border-[#0F2C59] focus:outline-none transition shadow-2xs"
               />
             </label>
 
@@ -52,7 +55,7 @@ export default function LoginPage() {
                 name="role"
                 required
                 defaultValue="Senior Electoral Officer"
-                className="mt-1 w-full rounded-lg border-2 border-slate-300 bg-slate-50 p-2.5 text-xs font-semibold text-slate-900 focus:border-[#0A194E] focus:bg-white focus:outline-none transition shadow-inner"
+                className="mt-1 w-full rounded border border-slate-300 bg-white p-2.5 text-xs font-semibold text-slate-900 focus:border-[#0F2C59] focus:outline-none transition shadow-2xs"
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
@@ -65,15 +68,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full rounded-lg bg-[#0A194E] py-2.5 font-bold text-xs uppercase tracking-wider text-white shadow hover:bg-[#002147] disabled:opacity-50 transition cursor-pointer"
+              className="w-full rounded bg-[#0F2C59] py-2.5 font-bold text-xs uppercase tracking-wider text-white shadow-2xs hover:bg-[#0A1E3F] disabled:opacity-50 transition cursor-pointer"
             >
               {pending ? 'सत्र प्रारंभ हो रहा है…' : 'नियंत्रण कक्ष में प्रवेश करें (Enter Console)'}
             </button>
 
             {state.error && <p className="text-xs text-red-700 font-bold text-center">{state.error}</p>}
 
-            <div className="pt-2 text-center">
-              <Link href="/" className="text-xs font-bold text-[#0A194E] hover:underline">
+            <div className="pt-3 text-center border-t border-slate-100">
+              <Link href="/" className="text-xs font-bold text-[#0F2C59] hover:underline">
                 ← नागरिक दावा सत्यापन मुख्य पृष्ठ पर लौटें
               </Link>
             </div>

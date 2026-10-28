@@ -193,36 +193,36 @@ export function ElectorCardView({ text, lang = 'hi-IN' }: ElectorCardViewProps) 
 
           let badgeBg = 'bg-emerald-50 text-emerald-800 border-emerald-300';
           let badgeIcon = '✅';
-          let statusBorder = 'border-slate-200 hover:border-emerald-300';
+          let statusBorder = 'border-slate-300 border-l-4 border-l-[#15803D]';
 
           if (isDeleted) {
             badgeBg = 'bg-rose-50 text-rose-800 border-rose-300';
             badgeIcon = '⚠️';
-            statusBorder = 'border-rose-200 bg-rose-50/20';
+            statusBorder = 'border-slate-300 border-l-4 border-l-[#991B1B] bg-rose-50/10';
           } else if (isDuplicate) {
             badgeBg = 'bg-amber-50 text-amber-800 border-amber-300';
             badgeIcon = '⚠️';
-            statusBorder = 'border-amber-200 bg-amber-50/20';
+            statusBorder = 'border-slate-300 border-l-4 border-l-[#C2410C] bg-amber-50/10';
           }
 
           return (
             <div
               key={e.index}
-              className={`rounded-xl border bg-white p-4 sm:p-5 shadow-xs transition ${statusBorder}`}
+              className={`rounded-lg border bg-white p-4 sm:p-5 shadow-2xs transition ${statusBorder}`}
             >
               {/* Card Title & Badge */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
+                  <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center font-bold text-xs border border-slate-200">
                     {e.index}
                   </span>
-                  <span className="text-sm sm:text-base font-black text-[#0B1E3F] tracking-tight">
+                  <span className="text-sm sm:text-base font-bold text-[#0F2C59] tracking-tight">
                     {e.name}
                   </span>
                 </div>
 
                 {e.badge && (
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${badgeBg}`}>
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded border ${badgeBg}`}>
                     <span>{badgeIcon}</span>
                     <span>{e.badge.replace(/[✅⚠️]/g, '').trim()}</span>
                   </span>
@@ -232,37 +232,37 @@ export function ElectorCardView({ text, lang = 'hi-IN' }: ElectorCardViewProps) 
               {/* Attributes Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 py-3 text-xs">
                 {/* Constituency */}
-                <div className="bg-[#F8FAFC] p-2.5 rounded-lg border border-slate-100 flex items-start gap-2">
+                <div className="bg-slate-50 p-2.5 rounded border border-slate-200 flex items-start gap-2">
                   <span className="text-sm">🏛️</span>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">
                       {lang === 'en-IN' ? 'Constituency' : 'विधानसभा क्षेत्र'}
                     </span>
-                    <span className="font-bold text-slate-900 mt-0.5 block">{e.constituency || '—'}</span>
+                    <span className="font-bold text-slate-900 mt-0.5 block">{e.constituency || '(None)'}</span>
                   </div>
                 </div>
 
                 {/* Polling Station */}
-                <div className="bg-[#F8FAFC] p-2.5 rounded-lg border border-slate-100 flex items-start gap-2">
+                <div className="bg-slate-50 p-2.5 rounded border border-slate-200 flex items-start gap-2">
                   <span className="text-sm">🏫</span>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">
                       {lang === 'en-IN' ? 'Polling Station' : 'मतदान केंद्र'}
                     </span>
-                    <span className="font-bold text-slate-900 mt-0.5 block leading-tight">{e.pollingStation || '—'}</span>
+                    <span className="font-bold text-slate-900 mt-0.5 block leading-tight">{e.pollingStation || '(None)'}</span>
                   </div>
                 </div>
 
                 {/* Masked EPIC */}
-                <div className="bg-[#F8FAFC] p-2.5 rounded-lg border border-slate-100 flex items-start gap-2">
+                <div className="bg-slate-50 p-2.5 rounded border border-slate-200 flex items-start gap-2">
                   <span className="text-sm">🪪</span>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">
                       {lang === 'en-IN' ? 'EPIC (Voter ID)' : 'पहचान पत्र (EPIC)'}
                     </span>
                     <div className="mt-0.5 flex items-center gap-1.5">
-                      <span className="font-mono font-bold bg-white text-slate-900 px-2 py-0.5 rounded border border-slate-200 text-xs">
-                        {e.epic || '—'}
+                      <span className="font-mono font-bold bg-white text-slate-900 px-2 py-0.5 rounded border border-slate-300 text-xs">
+                        {e.epic || '(None)'}
                       </span>
                       <span className="text-[10px] text-slate-500 font-medium">🔒 DPDP Masked</span>
                     </div>
@@ -270,19 +270,19 @@ export function ElectorCardView({ text, lang = 'hi-IN' }: ElectorCardViewProps) 
                 </div>
 
                 {/* Relative */}
-                <div className="bg-[#F8FAFC] p-2.5 rounded-lg border border-slate-100 flex items-start gap-2">
+                <div className="bg-slate-50 p-2.5 rounded border border-slate-200 flex items-start gap-2">
                   <span className="text-sm">👨‍👩‍👦</span>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">
                       {lang === 'en-IN' ? 'Relative / Guardian' : 'संबंधी का नाम'}
                     </span>
-                    <span className="font-bold text-slate-900 mt-0.5 block">{e.relative || '—'}</span>
+                    <span className="font-bold text-slate-900 mt-0.5 block">{e.relative || '(None)'}</span>
                   </div>
                 </div>
 
                 {/* Age & Gender */}
                 {e.ageGender && (
-                  <div className="bg-[#F8FAFC] p-2.5 rounded-lg border border-slate-100 flex items-start gap-2 sm:col-span-2">
+                  <div className="bg-slate-50 p-2.5 rounded border border-slate-200 flex items-start gap-2 sm:col-span-2">
                     <span className="text-sm">🎂</span>
                     <div>
                       <span className="text-[10px] uppercase font-bold text-slate-500 block">
@@ -297,7 +297,7 @@ export function ElectorCardView({ text, lang = 'hi-IN' }: ElectorCardViewProps) 
               {/* Status / Statutory Action Banner */}
               {e.rollStatus && (
                 <div
-                  className={`mt-1 p-2.5 rounded-lg border text-xs flex items-start gap-2 ${
+                  className={`mt-1 p-2.5 rounded border text-xs flex items-start gap-2 ${
                     isDeleted
                       ? 'bg-rose-50 border-rose-200 text-rose-900 font-medium'
                       : isDuplicate

@@ -28,7 +28,7 @@ function maskDeep(value: unknown, key = ''): unknown {
 }
 
 function display(value: unknown): string {
-  if (value === null || value === undefined) return '—';
+  if (value === null || value === undefined) return '-';
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (Array.isArray(value) && value.every((x) => typeof x !== 'object')) return value.join(', ');
   return JSON.stringify(value);
@@ -42,20 +42,20 @@ function renderValue(value: unknown): ReactNode {
     return <ObjectTable rows={value as Record<string, unknown>[]} />;
   }
   if (isObj(value)) return <KeyValues obj={value} />;
-  return <p className="text-sm">{display(value)}</p>;
+  return <p className="text-xs font-mono">{display(value)}</p>;
 }
 
 export function EvidenceViewer({ payload }: { payload: unknown }) {
   const safe = maskDeep(payload);
   if (safe === null || typeof safe !== 'object') {
-    return <p className="text-sm text-slate-500">No evidence attached.</p>;
+    return <p className="text-xs text-slate-500 italic">No evidence attached.</p>;
   }
   const sections: [string, unknown][] = Array.isArray(safe) ? [['rows', safe]] : Object.entries(safe);
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {sections.map(([key, value]) => (
         <section key={key}>
-          <h3 className="mb-2 text-sm font-semibold text-slate-700">{humanize(key)}</h3>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-700">{humanize(key)}</h3>
           {renderValue(value)}
         </section>
       ))}
@@ -70,22 +70,22 @@ function ObjectTable({ rows }: { rows: Record<string, unknown>[] }) {
   const slice = rows.slice(0, MAX_ROWS);
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded border border-slate-200">
       <table className="w-full text-left text-xs">
-        <thead className="border-b border-slate-200 text-slate-500">
+        <thead className="border-b border-slate-200 bg-slate-100 text-slate-700">
           <tr>
             {cols.map((c) => (
-              <th key={c} className="py-2 pr-4 font-medium">
+              <th key={c} className="py-2 px-3 font-bold">
                 {humanize(c)}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 font-mono text-slate-700">
+        <tbody className="divide-y divide-slate-200 bg-white font-mono text-slate-800">
           {slice.map((r, i) => (
             <tr key={i} className="hover:bg-slate-50">
               {cols.map((c) => (
-                <td key={c} className="py-1.5 pr-4">
+                <td key={c} className="py-2 px-3">
                   {display(r[c])}
                 </td>
               ))}
@@ -94,7 +94,7 @@ function ObjectTable({ rows }: { rows: Record<string, unknown>[] }) {
         </tbody>
       </table>
       {truncated && (
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="p-2 text-[11px] text-slate-500 bg-slate-50 border-t border-slate-200">
           Showing {MAX_ROWS} of {rows.length} rows.
         </p>
       )}
@@ -106,9 +106,9 @@ function KeyValues({ obj }: { obj: Record<string, unknown> }) {
   return (
     <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
       {Object.entries(obj).map(([k, v]) => (
-        <div key={k} className="rounded border border-slate-100 p-2">
-          <dt className="text-slate-400">{humanize(k)}</dt>
-          <dd className="font-mono text-slate-700">{display(v)}</dd>
+        <div key={k} className="rounded border border-slate-200 bg-white p-2.5 shadow-2xs">
+          <dt className="text-[11px] font-semibold text-slate-500">{humanize(k)}</dt>
+          <dd className="mt-0.5 font-mono text-slate-800 font-medium">{display(v)}</dd>
         </div>
       ))}
     </dl>
@@ -118,13 +118,13 @@ function KeyValues({ obj }: { obj: Record<string, unknown> }) {
 function BeforeAfter({ before, after }: { before: unknown; after: unknown }) {
   return (
     <div className="grid gap-3 text-xs sm:grid-cols-2">
-      <div className="rounded border border-rose-100 bg-rose-50/40 p-3">
-        <p className="mb-1 font-semibold text-rose-800">Before (Baseline)</p>
-        <div className="font-mono text-slate-700">{renderValue(before)}</div>
+      <div className="rounded border border-rose-200 bg-rose-50/50 p-3">
+        <p className="mb-1 font-bold text-rose-800 uppercase tracking-wider text-[11px]">Before (Baseline Roll)</p>
+        <div className="font-mono text-slate-800">{renderValue(before)}</div>
       </div>
-      <div className="rounded border border-emerald-100 bg-emerald-50/40 p-3">
-        <p className="mb-1 font-semibold text-emerald-800">After (Revised)</p>
-        <div className="font-mono text-slate-700">{renderValue(after)}</div>
+      <div className="rounded border border-emerald-200 bg-emerald-50/50 p-3">
+        <p className="mb-1 font-bold text-emerald-800 uppercase tracking-wider text-[11px]">After (Revised Roll)</p>
+        <div className="font-mono text-slate-800">{renderValue(after)}</div>
       </div>
     </div>
   );

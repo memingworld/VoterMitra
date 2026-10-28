@@ -321,7 +321,7 @@ export function ClaimChecker({ currentLang: propLang }: ClaimCheckerProps) {
       ? `${window.location.origin}/c/${result.answer.auditId}`
       : window.location.href;
     const verdictText = result.answer.verdict === 'VERIFIED' ? '✅ प्रमाणित (VERIFIED)' : '⚠️ विवादित (DISPUTED)';
-    const text = `🇮🇳 *भारत निर्वाचन आयोग — मतदाता मित्र (VoterMitra)*\n\n📌 *सवाल:* "${result.question}"\n\n🔍 *निष्कर्ष:* ${verdictText}\n${result.answer.summary}\n\n🔗 आधिकारिक रिपोर्ट देखें: ${url}`;
+    const text = `🇮🇳 *भारत निर्वाचन आयोग : मतदाता मित्र (VoterMitra)*\n\n📌 *सवाल:* "${result.question}"\n\n🔍 *निष्कर्ष:* ${verdictText}\n${result.answer.summary}\n\n🔗 आधिकारिक रिपोर्ट देखें: ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   };
 
@@ -340,20 +340,15 @@ export function ClaimChecker({ currentLang: propLang }: ClaimCheckerProps) {
   return (
     <div className="w-full space-y-6">
       {/* Search & Verification Box */}
-      <div className="rounded-xl border-2 border-[#0A194E]/20 bg-white p-5 sm:p-7 shadow-md relative overflow-hidden">
-        {/* Subtle Ashoka Chakra watermark in background */}
-        <div className="absolute -right-8 -bottom-8 w-44 h-44 text-slate-100/50 pointer-events-none select-none text-9xl font-mono flex items-center justify-center opacity-40">
-          ☸
-        </div>
-
-        <div className="relative z-10">
+      <div className="rounded-lg border border-slate-300 bg-white p-5 sm:p-7 shadow-xs relative">
+        <div>
           {/* Header & Badges */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
             <div>
-              <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-[#E65100] border border-amber-300">
+              <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-[#C2410C] border border-amber-200">
                 <span>🛡️</span> {lang === 'en-IN' ? 'Official Electoral Roll Verification' : 'आधिकारिक मतदाता सत्यापन प्रणाली'}
               </span>
-              <h2 className="text-lg sm:text-xl font-bold text-[#0B1E3F] mt-1.5 tracking-tight">
+              <h2 className="text-lg sm:text-xl font-bold text-[#0F2C59] mt-1.5 tracking-tight">
                 {t.checkTitle}
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
@@ -383,19 +378,19 @@ export function ClaimChecker({ currentLang: propLang }: ClaimCheckerProps) {
                     : 'कोई भी नाम (उदा. युव जिंदल), पहचान पत्र (उदा. IPS3346004) या सवाल लिखें…'
                 }
                 disabled={busy || isListening}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-xs focus:border-[#0A194E] focus:outline-none focus:ring-1 focus:ring-[#0A194E] disabled:bg-slate-50 transition"
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-2xs focus:border-[#0F2C59] focus:outline-none focus:ring-1 focus:ring-[#0F2C59] disabled:bg-slate-50 transition"
               />
 
               <div className="flex items-center gap-2 shrink-0">
-                {/* Ask by Voice Button (Universal MediaRecorder + Gemini 2.5 Flash Audio) */}
+                {/* Ask by Voice Button (Universal MediaRecorder + Gemini Multimodal Audio) */}
                 <button
                   type="button"
                   onClick={toggleVoice}
                   disabled={busy}
-                  className={`flex items-center gap-1.5 rounded-lg border px-3.5 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer ${
+                  className={`flex items-center gap-1.5 rounded-lg border px-3.5 py-2.5 text-xs font-bold transition shadow-2xs cursor-pointer ${
                     isListening
-                      ? 'bg-red-600 border-red-700 text-white animate-pulse'
-                      : 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900'
+                      ? 'bg-red-600 border-red-700 text-white'
+                      : 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-700'
                   }`}
                   title={isListening ? t.btnStop : t.btnVoice}
                 >
@@ -407,7 +402,7 @@ export function ClaimChecker({ currentLang: propLang }: ClaimCheckerProps) {
                 <button
                   type="submit"
                   disabled={busy || !question.trim() || isListening}
-                  className="rounded-lg bg-[#0A194E] hover:bg-[#002147] px-4 py-2.5 text-xs font-bold text-white shadow-xs disabled:opacity-50 transition uppercase tracking-wider cursor-pointer"
+                  className="rounded-lg bg-[#0F2C59] hover:bg-[#0A1F3D] px-4 py-2.5 text-xs font-bold text-white shadow-2xs disabled:opacity-50 transition uppercase tracking-wider cursor-pointer"
                 >
                   {busy ? '...' : t.btnCheck}
                 </button>
@@ -422,7 +417,7 @@ export function ClaimChecker({ currentLang: propLang }: ClaimCheckerProps) {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
                   </span>
-                  <span>🔴 {t.btnListening} ({recordingSeconds}s) — बोलिए... (Recording live audio)</span>
+                  <span>🔴 {t.btnListening} ({recordingSeconds}s) : बोलिए... (Recording live audio)</span>
                   <div className="hidden sm:flex items-center gap-1 text-slate-500 font-mono text-[10px]">
                     <span className="animate-bounce">●</span>
                     <span className="animate-bounce delay-100">●</span>
@@ -605,48 +600,54 @@ export function ClaimChecker({ currentLang: propLang }: ClaimCheckerProps) {
             </div>
           )}
 
-          {/* Cryptographic Blockchain Seal (Polygon Amoy PoS) */}
+          {/* Official Digital Gazette Verification Certificate (NIC / ECI Standard) */}
           {result.answer.blockchain && (
-            <div className="rounded-xl bg-slate-950 text-slate-200 p-4 border border-slate-800 text-xs shadow-md space-y-2.5">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+            <div className="rounded-lg bg-slate-50 border-2 border-slate-300 p-4 sm:p-5 text-slate-900 text-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-bold text-amber-300 tracking-wide">
-                    ⛓️ ब्लॉकचेन रोल सत्यनिष्ठा प्रमाण (On-Chain Roll Seal)
+                  <span className="w-2 h-2 rounded-full bg-[#15803D]" />
+                  <span className="font-bold text-[#0F2C59] tracking-wide text-xs">
+                    📜 {lang === 'en-IN' ? 'Digital Electoral Gazette Roll Seal' : 'आधिकारिक डिजिटल निर्वाचक नामावली राजपत्र प्रमाण'}
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700">
-                  Polygon Amoy PoS · Sealed ✓
+                <span className="text-[10px] font-mono font-bold text-[#15803D] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300">
+                  Polygon Amoy PoS: Sealed ✓
                 </span>
               </div>
 
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                {lang === 'en-IN'
+                  ? 'This elector record is cryptographically anchored to the Master Merkle Root on Polygon Proof of Stake, ensuring tamper-evident statutory integrity under Sections 22 and 23 of the Representation of the People Act, 1950.'
+                  : 'यह मतदाता रिकॉर्ड जनप्रतिनिधित्व अधिनियम 1950 की धारा 22 एवं 23 के तहत मर्कल ट्री द्वारा पॉलीगॉन प्रूफ ऑफ स्टेक पर गणितीय रूप से सीलबंद एवं सुरक्षित है।'}
+              </p>
+
               <div className="grid sm:grid-cols-2 gap-2 text-[11px] font-mono">
-                <div className="bg-slate-900/90 p-2 rounded border border-slate-800">
-                  <span className="text-slate-400 block text-[9px] uppercase tracking-wider">Merkle Root Hash</span>
-                  <span className="text-emerald-400 truncate block font-bold">
+                <div className="bg-white p-2.5 rounded border border-slate-300">
+                  <span className="text-slate-500 block text-[9px] font-sans uppercase tracking-wider font-semibold">Master Merkle Root Hash</span>
+                  <span className="text-slate-900 truncate block font-bold text-[10px]">
                     {result.answer.blockchain.merkleRoot}
                   </span>
                 </div>
-                <div className="bg-slate-900/90 p-2 rounded border border-slate-800">
-                  <span className="text-slate-400 block text-[9px] uppercase tracking-wider">Smart Contract</span>
-                  <span className="text-amber-400 truncate block font-bold">
+                <div className="bg-white p-2.5 rounded border border-slate-300">
+                  <span className="text-slate-500 block text-[9px] font-sans uppercase tracking-wider font-semibold">Smart Contract Registry</span>
+                  <span className="text-slate-900 truncate block font-bold text-[10px]">
                     {result.answer.blockchain.contractAddress}
                   </span>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between text-[11px] pt-1 text-slate-400">
+              <div className="flex flex-wrap items-center justify-between text-[11px] pt-1 text-slate-600 border-t border-slate-200">
                 <span>
-                  Anchor Block: <strong className="text-slate-200">#{result.answer.blockchain.blockNumber}</strong> (Polygon PoS)
+                  Anchor Block: <strong className="text-slate-900">#{result.answer.blockchain.blockNumber}</strong> (Polygon PoS)
                 </span>
                 {result.answer.blockchain.explorerUrl && (
                   <a
                     href={result.answer.blockchain.explorerUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-amber-400 hover:text-amber-300 font-bold underline"
+                    className="text-[#0F2C59] hover:underline font-bold"
                   >
-                    Polygonscan पर ऑन-चेन सत्यापन देखें ↗
+                    {lang === 'en-IN' ? 'Verify On-Chain on Polygonscan ↗' : 'पॉलीगॉनस्कैन पर ऑन-चेन सत्यापन देखें ↗'}
                   </a>
                 )}
               </div>

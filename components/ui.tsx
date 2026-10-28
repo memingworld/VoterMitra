@@ -2,22 +2,22 @@ import type { ReactNode } from 'react';
 import { SEVERITY_STYLES, STATUS_LABELS, STATUS_STYLES, VERDICT_LABELS, VERDICT_PILL_STYLES } from '@/lib/labels';
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>{children}</div>;
+  return <div className={`rounded-lg border border-slate-200 bg-white p-5 shadow-2xs ${className}`}>{children}</div>;
 }
 
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
     <Card>
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-black text-[#0F2C59] tabular-nums">{value}</p>
+      {hint && <p className="mt-1 text-xs text-slate-600 font-medium">{hint}</p>}
     </Card>
   );
 }
 
 export function Badge({ children, className }: { children: ReactNode; className: string }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${className}`}>
+    <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${className}`}>
       {children}
     </span>
   );

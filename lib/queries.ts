@@ -3,7 +3,7 @@ import { query } from './db';
 import { FALLBACK_FLAGS } from './fallback-data';
 
 export function maskName(name: string): string {
-  if (!name) return '—';
+  if (!name) return '-';
   return name
     .split(/\s+/)
     .map((part) => {
