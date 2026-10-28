@@ -165,7 +165,7 @@ async function synthesizeVoice(text, lang = 'hi-IN') {
 // Gemini 2.5 Flash Grounded Electoral Reasoning with Strict Language Enforcement
 async function queryGemini(query, lang = 'hi-IN', langName = 'Hindi') {
   if (!geminiKey) return null;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
 
   const systemInstruction = `
 You are VoterMitra (मतदाता मित्र), official AI electoral verification intelligence for Election Commission of India.
@@ -239,7 +239,7 @@ DO NOT respond in Hindi unless the requested language is Hindi (hi-IN).
 // Gemini 2.5 Flash Multimodal Audio Intelligence (Transcribe + Statutory Reasoning in One Step)
 async function queryGeminiAudio(base64Audio, mimeType = 'audio/ogg', lang = 'hi-IN', langName = 'Hindi') {
   if (!geminiKey) return null;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
 
   const audioInstruction = `
 You are VoterMitra (मतदाता मित्र), official AI electoral verification intelligence for Election Commission of India.
@@ -328,6 +328,9 @@ RESPONSE FORMAT REQUIREMENTS (Valid JSON strictly):
       if (rawText) {
         return JSON.parse(rawText);
       }
+    } else {
+      const errData = await res.json().catch(() => null);
+      console.warn(`[gemini bot audio] API returned HTTP ${res.status}:`, errData?.error?.message || errData);
     }
   } catch (err) {
     console.warn('[gemini bot audio] reasoning error:', err.message);

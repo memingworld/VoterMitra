@@ -91,7 +91,7 @@ export async function askGemini(
   };
   const langName = langNames[lang] || 'Hindi';
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
 
   const prompt = `User Query: "${query}"\nTarget Language: "${langName}" (Language Code: "${lang}")\nAnalyze this query and return the JSON response in ${langName}.`;
 
@@ -162,7 +162,7 @@ export async function askGeminiAudio(
   };
   const langName = langNames[lang] || 'Hindi';
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
 
   const audioInstruction = `
 You are VoterMitra (मतदाता मित्र), the official AI electoral verification intelligence of the Election Commission of India (ECI).
@@ -261,7 +261,8 @@ Always respond with a valid JSON object strictly matching this schema:
     });
 
     if (!res.ok) {
-      console.warn(`[gemini audio] API call returned status ${res.status}`);
+      const errData = await res.json().catch(() => null);
+      console.warn(`[gemini audio] API call returned status ${res.status}:`, errData?.error?.message || errData);
       return null;
     }
 

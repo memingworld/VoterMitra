@@ -90,7 +90,7 @@ export async function answerQuestion(
           rawQuery: question,
           transcribedText: options.transcribedText ?? null,
           languageCode: lang,
-          selectedFunction: 'gemini-2.5-flash',
+          selectedFunction: 'gemini-3.5-flash',
           functionArgs: { acNo: defaultAc, partNo, claimedCount },
           toolOutput: { category: geminiResult.category },
           verdict: geminiResult.verdict,
