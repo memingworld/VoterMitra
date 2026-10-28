@@ -41,7 +41,7 @@ const INQUIRY_CATEGORIES = [
     hintEn: 'Audit targeted deletions and statistical shifts under Rule 21A',
     hintHi: 'नियम 21A के तहत संदिग्ध विलोपन व सांख्यिकीय विचलनों की जांच',
     queries: [
-      { q: 'Check status for Pooja Verma', label: 'Pooja Verma (Part 4 Deletion Anomaly)' },
+      { q: 'Check status for Vanshika Kain', label: 'Vanshika Kain (Part 4 Deletion Anomaly)' },
       { q: 'Were 49 women electors deleted in Part 4?', label: 'Part 4 (+4.9σ Female Deletion Anomaly)' },
       { q: 'Check cross-AC duplicate entries', label: 'Cross-AC Duplicate EPIC Check (AC 6 & 13)' },
     ],

@@ -56,7 +56,7 @@ export async function answerQuestion(
     /(?:is|kya|check|search|verify|find|voter|roll|naam|suchi|status|क्या|नाम|सूची|मतदाता)\s+/iu.test(question) ||
     /[a-z]{3}\s*[0-9]{7}/i.test(question) ||
     /dl\/[0-9]{2}\/[0-9]{3}\/[0-9]+/i.test(question) ||
-    /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar|जिंदल|शर्मा|कुमार|सिंह|वर्मा|देवी/iu.test(question);
+    /jindal|sharma|kumar|singh|verma|devi|chandhok|panwar|gupta|goel|bansal|aggarwal|kain|mittal|जिंदल|शर्मा|कुमार|सिंह|वर्मा|देवी|गुप्ता|गोयल|बंसल|कैन/iu.test(question);
 
   if (isElectorQuery) {
     const searchResult = await searchElectorInDatabase(question);

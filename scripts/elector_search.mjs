@@ -290,27 +290,35 @@ const STOPWORDS = new Set([
   'list', 'roll', 'electoral', 'elector', 'voter', 'voters', 'name', 'status', 'check',
   'search', 'find', 'lookup', 'look', 'verify', 'verification', 'please', 'can', 'you',
   'tell', 'me', 'whether', 'show', 'duplicate', 'deleted', 'deletion', 'any', 'there',
+  'this', 'that', 'these', 'those', 'inside', 'within', 'about', 'data', 'database', 'system',
+  'contains', 'contain', 'exists', 'exist', 'available', 'person', 'someone', 'citizen',
   'ac', 'part', 'booth', 'constituency',
   // Hindi / Hinglish / Urdu
   'kya', 'hai', 'hain', 'ka', 'ki', 'ke', 'ko', 'se', 'me', 'mein', 'par', 'naam', 'suchi',
   'koi', 'kisi', 'bhi', 'kuch', 'matdata', 'chunaav', 'ya', 'nahi', 'nahin', 'batao', 'dekho',
   'check', 'karo', 'kare', 'karen', 'darj', 'hoga', 'hogi', 'kripya', 'shamil', 'vivaran', 'sthiti',
+  'is', 'iss', 'in', 'isme', 'issme', 'andar', 'data', 'database', 'bataiye', 'dekhiye', 'maujood', 'uplabdh', 'ji',
   'क्या', 'है', 'हैं', 'का', 'की', 'के', 'को', 'से', 'में', 'पर', 'नाम', 'सूची',
   'कोई', 'किसी', 'भी', 'कुछ', 'मतदाता', 'चुनाव', 'या', 'नहीं', 'बताओ', 'बताएं', 'देखें', 'चेक', 'करो', 'करें',
   'दर्ज', 'कृपया', 'शामिल', 'विवरण', 'स्थिति', 'सत्यापित', 'खोजें', 'दिखाओ', 'जांच',
+  'इस', 'इन', 'उस', 'उन', 'डाटा', 'डेटा', 'अंदर', 'भीतर', 'बारे',
+  'मौजूद', 'उपस्थित', 'उपलब्ध', 'पंजीकृत', 'हो', 'था', 'थी', 'थे',
+  'वाला', 'वाली', 'वाले', 'यहाँ', 'यहां', 'वहाँ', 'वहां', 'इधर', 'उधर',
+  'नागरिक', 'इंसान', 'व्यक्ति', 'जी',
+  'बताइए', 'बोलिए', 'दिखाइए', 'ढूंढिए', 'ढूंढो', 'खोजिए', 'खोजो', 'सत्यापन', 'जांचिए',
   'भाग', 'पार्ट', 'बूथ', 'विधानसभा', 'क्षेत्र',
   // Location stopwords (to separate location from person name)
   'रोहिणी', 'रिठाला', 'लक्ष्मी', 'नगर', 'कुंदन', 'आरके', 'पुरम', 'आर', 'के',
   'rohini', 'rithala', 'laxmi', 'nagar', 'kundan', 'rk', 'puram',
   // Regional common question particles
-  'आहे', 'नाव', 'यादी', 'तपासा', 'सांगा', // Marathi
-  'আছেন', 'নাম', 'তালিকা', 'দেখুন', // Bengali
-  'உள்ளாரா', 'பெயர்', 'பட்டியல்', 'சரிபார்க்க', // Tamil
-  'ఉన్నారా', 'పేరు', 'జాబితా', 'తనిఖీ', // Telugu
-  'છે', 'નામ', 'યાદી', 'તપાસો', // Gujarati
-  'ಇದ್ದಾರೆಯೇ', 'ಹೆಸರು', 'ಪಟ್ಟಿ', 'ಪರಿಶೀಲಿಸಿ', // Kannada
-  'ഉണ്ടോ', 'പേര്', 'പട്ടിക', 'പരിശോധിക്കുക', // Malayalam
-  'ਹੈ', 'ਨਾਮ', 'ਸੂਚੀ', 'ਚੈੱਕ', 'ਕਰੋ', // Punjabi
+  'आहे', 'नाव', 'यादी', 'तपासा', 'सांगा', 'या', 'माहिती', 'मध्ये', // Marathi
+  'আছেন', 'নাম', 'তালিকা', 'দেখুন', 'এই', 'তথ্য', 'ভেতরে', // Bengali
+  'உள்ளாரா', 'பெயர்', 'பட்டியல்', 'சரிபார்க்க', 'இந்த', 'தரவு', // Tamil
+  'ఉన్నారా', 'పేరు', 'జాబితా', 'తనిఖీ', 'ఈ', 'డేటా', // Telugu
+  'છે', 'નામ', 'યાદી', 'તપાસો', 'આ', 'ડેટા', 'અંદર', // Gujarati
+  'ಇದ್ದಾರೆಯೇ', 'ಹೆಸರು', 'ಪಟ್ಟಿ', 'ಪರಿಶೀಲಿಸಿ', 'ಈ', 'ಡೇಟಾ', // Kannada
+  'ഉണ്ടോ', 'പേര്', 'പട്ടിക', 'പരിശോധിക്കുക', 'ഈ', 'ഡാറ്റ', // Malayalam
+  'ਹੈ', 'ਨਾਮ', 'ਸੂਚੀ', 'ਚੈੱਕ', 'ਕਰੋ', 'ਇਸ', 'ਡਾਟਾ', // Punjabi
 ]);
 
 /**
@@ -434,35 +442,50 @@ function matchNameToken(electorToken, queryToken) {
 }
 
 function matchElector(words, elector) {
-  const normWords = words.map(normalizeNameToken);
+  const normWords = words.map(normalizeNameToken).filter((w) => w.length >= 2);
+  if (normWords.length === 0) return false;
 
-  // Special benchmark planted deletion alias: Pooja Verma -> NLN2660207 (Vanshika Kain, Part 4)
-  if (elector.epicNo === 'NLN2660207') {
-    const combined = normWords.join(' ');
-    if (combined === 'pooja verma' || combined === 'vanshika kain' || combined.includes('pooja') || combined.includes('vanshika')) {
+  // 1. Exact full name match
+  const queryPhrase = normWords.join(' ');
+  if (queryPhrase === elector.nameClean) return true;
+
+  // 2. Token-level matching for multi-word electors
+  const firstMatchIdx = normWords.findIndex((w) =>
+    elector.firstNames.some((fn) => matchNameToken(fn, w))
+  );
+  const lastMatchIdx = normWords.findIndex((w) =>
+    elector.lastNames.some((ln) => matchNameToken(ln, w))
+  );
+
+  // If elector has both first and last name in roll records:
+  if (elector.firstNames.length > 0 && elector.lastNames.length > 0) {
+    // Both first name and last name must be matched by distinct query words
+    if (firstMatchIdx !== -1 && lastMatchIdx !== -1 && firstMatchIdx !== lastMatchIdx) {
       return true;
     }
+    // If user provided only 1 query word (e.g. "Jindal" or "Sarthak"), allow matching either first or last name
+    if (normWords.length === 1) {
+      const s = normWords[0];
+      if (s.length >= 3) {
+        return (
+          elector.firstNames.some((fn) => matchNameToken(fn, s)) ||
+          elector.lastNames.some((ln) => matchNameToken(ln, s))
+        );
+      }
+    }
+    return false;
   }
 
-  // Case A: 2 or more words provided (e.g. 'amit kumar' or 'yuv jindal')
-  // Both first name and last name must match!
-  if (normWords.length >= 2) {
-    const wFirst = normWords[0];
-    const wLast = normWords[normWords.length - 1];
-
-    const firstMatches = elector.firstNames.some((fn) => matchNameToken(fn, wFirst));
-    const lastMatches = elector.lastNames.some((ln) => matchNameToken(ln, wLast));
-
-    return firstMatches && lastMatches;
-  }
-
-  // Case B: Exactly 1 word provided (e.g. 'jindal' or 'yuv')
-  if (normWords.length === 1) {
-    const w = normWords[0];
-    if (w.length < 3) return false; // Ignore isolated 1-2 letter initials
-    const firstMatches = elector.firstNames.some((fn) => matchNameToken(fn, w));
-    const lastMatches = elector.lastNames.some((ln) => matchNameToken(ln, w));
-    return firstMatches || lastMatches;
+  // 3. Single-name electors in roll (e.g. electors named just "POOJA" without surname):
+  // They only match if user searched for a single name word
+  if (elector.firstNames.length > 0 && elector.lastNames.length === 0) {
+    if (normWords.length === 1) {
+      const single = normWords[0];
+      if (single.length >= 3) {
+        return elector.firstNames.some((fn) => matchNameToken(fn, single));
+      }
+    }
+    return false;
   }
 
   return false;

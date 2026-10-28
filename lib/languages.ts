@@ -147,7 +147,7 @@ export const I18N_DICTIONARY: Record<LanguageCode, LangUI> = {
     },
     examples: [
       'Is Yuv Jindal present in the list?',
-      'Check status for Pooja Verma',
+      'Check status for Vanshika Kain',
       'Were 49 women electors deleted in Part 4?',
       'How many electors are registered at Plot 12-B?',
     ],
